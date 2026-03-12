@@ -1,0 +1,50 @@
+## .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+bld/
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+## macOS
+.DS_Store
+Thumbs.db
+
+## SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+## Secrets / Environment
+appsettings.Development.json
+.env
+*.pfx
+*.key
+
+## Publish output
+publish/
