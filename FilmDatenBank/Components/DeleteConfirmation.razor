@@ -1,0 +1,30 @@
+@if (IsVisible)
+{
+    <div class="confirm-overlay" @onclick="OnCancel">
+        <div class="confirm-box" @onclick:stopPropagation="true">
+            <div class="confirm-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                </svg>
+            </div>
+            <h3 class="confirm-title">@Title</h3>
+            <p class="confirm-body">@Message</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn confirm-btn-cancel" @onclick="OnCancel">Abbrechen</button>
+                <button class="confirm-btn confirm-btn-danger" @onclick="OnConfirm">Ja, löschen</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Löschen?";
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

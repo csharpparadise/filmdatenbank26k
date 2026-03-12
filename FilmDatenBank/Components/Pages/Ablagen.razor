@@ -1,0 +1,208 @@
+@page "/ablagen"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject ToastService ToastService
+
+<PageTitle>Ablagen verwalten</PageTitle>
+
+<h1 class="mb-4">Ablagen</h1>
+
+@if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger alert-dismissible">
+        @_fehler
+        <button type="button" class="btn-close" @onclick="() => _fehler = string.Empty"></button>
+    </div>
+}
+
+@if (_ablagen is null)
+{
+    <p>Wird geladen...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Ort</th>
+                    <th>Typ</th>
+                    <th>Bemerkung</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ablage in _ablagen)
+                {
+                    @if (_editAblage?.Id == ablage.Id)
+                    {
+                        <tr class="table-active">
+                            <td>
+                                <input class="form-control form-control-sm" maxlength="20"
+                                       @bind="_editAblage.Ort" placeholder="Ort *" />
+                            </td>
+                            <td>
+                                <input class="form-control form-control-sm" maxlength="20"
+                                       @bind="_editAblage.Typ" placeholder="Typ *" />
+                            </td>
+                            <td>
+                                <input class="form-control form-control-sm" maxlength="255"
+                                       @bind="_editAblage.Bemerkung" placeholder="Bemerkung" />
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-primary me-1" @onclick="EditSpeichern">Speichern</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EditAbbrechen">Abbrechen</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>@ablage.Ort</td>
+                            <td><span class="badge bg-secondary">@ablage.Typ</span></td>
+                            <td class="text-muted">@ablage.Bemerkung</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        @onclick="() => EditStarten(ablage)">Bearbeiten</button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => LoeschenBestaetigen(ablage)">Löschen</button>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                <!-- Neue Ablage -->
+                <tr class="table-light">
+                    <td>
+                        <input class="form-control form-control-sm" maxlength="20"
+                               @bind="_neueAblage.Ort" placeholder="Ort *" />
+                    </td>
+                    <td>
+                        <input class="form-control form-control-sm" maxlength="20"
+                               @bind="_neueAblage.Typ" placeholder="Typ *" />
+                    </td>
+                    <td>
+                        <input class="form-control form-control-sm" maxlength="255"
+                               @bind="_neueAblage.Bemerkung" placeholder="Bemerkung" />
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-primary" @onclick="NeuHinzufuegen">
+                            + Hinzufügen
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small">@_ablagen.Count Ablage(n)</p>
+}
+
+<DeleteConfirmation IsVisible="@(_loeschenAblage is not null)"
+                    Title="Ablage löschen?"
+                    Message="@(_loeschenAblage is not null ? $"{_loeschenAblage.Ort} ({_loeschenAblage.Typ}) wird gelöscht. Ablagen, die noch Filmen zugewiesen sind, können nicht gelöscht werden." : "")"
+                    OnConfirm="LoeschenBestaetigt"
+                    OnCancel="() => _loeschenAblage = null" />
+
+@code {
+    private List<Ablage>? _ablagen;
+    private Ablage        _neueAblage  = new();
+    private Ablage?       _editAblage;
+    private Ablage?       _loeschenAblage;
+    private string        _fehler = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Laden();
+    }
+
+    private async Task Laden()
+    {
+        _ablagen = await FilmService.AlleAblageAsync();
+    }
+
+    // ── Neu ──────────────────────────────────────────────────────────────────
+
+    private async Task NeuHinzufuegen()
+    {
+        if (string.IsNullOrWhiteSpace(_neueAblage.Ort) || string.IsNullOrWhiteSpace(_neueAblage.Typ))
+        {
+            _fehler = "Ort und Typ sind Pflichtfelder.";
+            return;
+        }
+        _fehler = string.Empty;
+        try
+        {
+            await FilmService.AblageHinzufuegenAsync(_neueAblage);
+            ToastService.Erfolg("Ablage hinzugefügt");
+            _neueAblage = new();
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+
+    // ── Bearbeiten ────────────────────────────────────────────────────────────
+
+    private void EditStarten(Ablage ablage)
+    {
+        _fehler    = string.Empty;
+        _editAblage = new Ablage
+        {
+            Id        = ablage.Id,
+            Ort       = ablage.Ort,
+            Typ       = ablage.Typ,
+            Bemerkung = ablage.Bemerkung,
+        };
+    }
+
+    private void EditAbbrechen() => _editAblage = null;
+
+    private async Task EditSpeichern()
+    {
+        if (_editAblage is null) return;
+        if (string.IsNullOrWhiteSpace(_editAblage.Ort) || string.IsNullOrWhiteSpace(_editAblage.Typ))
+        {
+            _fehler = "Ort und Typ sind Pflichtfelder.";
+            return;
+        }
+        _fehler = string.Empty;
+        try
+        {
+            await FilmService.AblageAktualisierenAsync(_editAblage);
+            ToastService.Erfolg("Ablage aktualisiert");
+            _editAblage = null;
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+
+    // ── Löschen ───────────────────────────────────────────────────────────────
+
+    private void LoeschenBestaetigen(Ablage ablage)
+    {
+        _fehler         = string.Empty;
+        _loeschenAblage = ablage;
+    }
+
+    private async Task LoeschenBestaetigt()
+    {
+        if (_loeschenAblage is null) return;
+        try
+        {
+            await FilmService.AblageLoeschenAsync(_loeschenAblage.Id);
+            ToastService.Erfolg("Ablage gelöscht");
+            _loeschenAblage = null;
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler         = $"Löschen fehlgeschlagen: {ex.InnerException?.Message ?? ex.Message}";
+            _loeschenAblage = null;
+        }
+    }
+}

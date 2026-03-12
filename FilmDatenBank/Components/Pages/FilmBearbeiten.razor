@@ -1,0 +1,74 @@
+@page "/film/bearbeiten/{Id:int}"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject NavigationManager Nav
+@inject ToastService ToastService
+
+<PageTitle>Film bearbeiten</PageTitle>
+
+<h1 class="page-heading">Film bearbeiten</h1>
+
+@if (_film is null && string.IsNullOrEmpty(_fehler))
+{
+    <p>Wird geladen...</p>
+}
+else if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger">@_fehler</div>
+    <a class="btn btn-outline-secondary" href="/">Zurück</a>
+}
+else if (_film is not null)
+{
+    <div class="form-card">
+        <EditForm Model="_film" OnValidSubmit="Speichern">
+            <DataAnnotationsValidator />
+            <FilmFormular Film="_film" VerfuegbareAblagen="_ablagen" VerfuegbareGenres="_genres" />
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Speichern</button>
+                <a class="btn btn-outline-secondary" href="/">Abbrechen</a>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_speicherFehler))
+{
+    <div class="alert alert-danger mt-3">@_speicherFehler</div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Film? _film;
+    private List<Ablage> _ablagen = [];
+    private List<Genre> _genres = [];
+    private string _fehler = string.Empty;
+    private string _speicherFehler = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (_ablagen, _genres, _film) = (
+            await FilmService.AlleAblageAsync(),
+            await FilmService.AlleGenreAsync(),
+            await FilmService.FilmNachIdAsync(Id)
+        );
+        if (_film is null)
+            _fehler = $"Film mit ID {Id} nicht gefunden.";
+    }
+
+    private async Task Speichern()
+    {
+        _speicherFehler = string.Empty;
+        try
+        {
+            await FilmService.AktualisierenAsync(_film!);
+            ToastService.Erfolg("Film aktualisiert");
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _speicherFehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+}

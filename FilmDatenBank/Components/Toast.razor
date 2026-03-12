@@ -1,0 +1,58 @@
+@inject ToastService ToastService
+@implements IDisposable
+
+@if (ToastService.Toasts.Count > 0)
+{
+    <div class="toast-container">
+        @foreach (var toast in ToastService.Toasts)
+        {
+            var t = toast;
+            <div class="toast-item toast-@t.Typ.ToString().ToLower()">
+                <span class="toast-text">@t.Text</span>
+                <button class="toast-close" @onclick="() => ToastService.Entfernen(t.Id)" aria-label="Schließen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private readonly HashSet<Guid> _scheduled = [];
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += OnToastChange;
+    }
+
+    private async void OnToastChange()
+    {
+        await InvokeAsync(StateHasChanged);
+
+        foreach (var toast in ToastService.Toasts)
+        {
+            if (_scheduled.Add(toast.Id))
+            {
+                var id = toast.Id;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(3500);
+                    await InvokeAsync(() =>
+                    {
+                        ToastService.Entfernen(id);
+                        _scheduled.Remove(id);
+                        StateHasChanged();
+                    });
+                });
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnChange -= OnToastChange;
+    }
+}

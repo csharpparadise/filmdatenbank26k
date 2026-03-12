@@ -1,0 +1,53 @@
+@page "/film/hinzufuegen"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject NavigationManager Nav
+@inject ToastService ToastService
+
+<PageTitle>Film hinzufügen</PageTitle>
+
+<h1 class="page-heading">Film hinzufügen</h1>
+
+@if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger">@_fehler</div>
+}
+
+<div class="form-card">
+    <EditForm Model="_film" OnValidSubmit="Speichern">
+        <DataAnnotationsValidator />
+        <FilmFormular Film="_film" VerfuegbareAblagen="_ablagen" VerfuegbareGenres="_genres" />
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Speichern</button>
+            <a class="btn btn-outline-secondary" href="/">Abbrechen</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private Film _film = new();
+    private List<Ablage> _ablagen = [];
+    private List<Genre> _genres = [];
+    private string _fehler = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _ablagen = await FilmService.AlleAblageAsync();
+        _genres = await FilmService.AlleGenreAsync();
+    }
+
+    private async Task Speichern()
+    {
+        _fehler = string.Empty;
+        try
+        {
+            await FilmService.HinzufuegenAsync(_film);
+            ToastService.Erfolg("Film hinzugefügt");
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _fehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+}

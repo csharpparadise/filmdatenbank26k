@@ -1,0 +1,182 @@
+@page "/genres"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject ToastService ToastService
+
+<PageTitle>Genres verwalten</PageTitle>
+
+<h1 class="mb-4">Genres</h1>
+
+@if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger alert-dismissible">
+        @_fehler
+        <button type="button" class="btn-close" @onclick="() => _fehler = string.Empty"></button>
+    </div>
+}
+
+@if (_genres is null)
+{
+    <p>Wird geladen...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var genre in _genres)
+                {
+                    @if (_editGenre?.Id == genre.Id)
+                    {
+                        <tr class="table-active">
+                            <td>
+                                <input class="form-control form-control-sm" maxlength="50"
+                                       @bind="_editGenre.Name" placeholder="Name *" />
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-primary me-1" @onclick="EditSpeichern">Speichern</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EditAbbrechen">Abbrechen</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>@genre.Name</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        @onclick="() => EditStarten(genre)">Bearbeiten</button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => LoeschenBestaetigen(genre)">Löschen</button>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                <!-- Neues Genre -->
+                <tr class="table-light">
+                    <td>
+                        <input class="form-control form-control-sm" maxlength="50"
+                               @bind="_neuesGenre.Name" placeholder="Name *" />
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-primary" @onclick="NeuHinzufuegen">
+                            + Hinzufügen
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small">@_genres.Count Genre(s)</p>
+}
+
+<DeleteConfirmation IsVisible="@(_loeschenGenre is not null)"
+                    Title="Genre löschen?"
+                    Message="@(_loeschenGenre is not null ? $"{_loeschenGenre.Name} wird gelöscht. Genres, die noch Filmen zugewiesen sind, können nicht gelöscht werden." : "")"
+                    OnConfirm="LoeschenBestaetigt"
+                    OnCancel="() => _loeschenGenre = null" />
+
+@code {
+    private List<Genre>? _genres;
+    private Genre        _neuesGenre  = new();
+    private Genre?       _editGenre;
+    private Genre?       _loeschenGenre;
+    private string       _fehler = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Laden();
+    }
+
+    private async Task Laden()
+    {
+        _genres = await FilmService.AlleGenreAsync();
+    }
+
+    // ── Neu ──────────────────────────────────────────────────────────────────
+
+    private async Task NeuHinzufuegen()
+    {
+        if (string.IsNullOrWhiteSpace(_neuesGenre.Name))
+        {
+            _fehler = "Name ist ein Pflichtfeld.";
+            return;
+        }
+        _fehler = string.Empty;
+        try
+        {
+            await FilmService.GenreHinzufuegenAsync(_neuesGenre);
+            ToastService.Erfolg("Genre hinzugefügt");
+            _neuesGenre = new();
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+
+    // ── Bearbeiten ────────────────────────────────────────────────────────────
+
+    private void EditStarten(Genre genre)
+    {
+        _fehler    = string.Empty;
+        _editGenre = new Genre { Id = genre.Id, Name = genre.Name };
+    }
+
+    private void EditAbbrechen() => _editGenre = null;
+
+    private async Task EditSpeichern()
+    {
+        if (_editGenre is null) return;
+        if (string.IsNullOrWhiteSpace(_editGenre.Name))
+        {
+            _fehler = "Name ist ein Pflichtfeld.";
+            return;
+        }
+        _fehler = string.Empty;
+        try
+        {
+            await FilmService.GenreAktualisierenAsync(_editGenre);
+            ToastService.Erfolg("Genre aktualisiert");
+            _editGenre = null;
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler = ex.InnerException?.Message ?? ex.Message;
+        }
+    }
+
+    // ── Löschen ───────────────────────────────────────────────────────────────
+
+    private void LoeschenBestaetigen(Genre genre)
+    {
+        _fehler        = string.Empty;
+        _loeschenGenre = genre;
+    }
+
+    private async Task LoeschenBestaetigt()
+    {
+        if (_loeschenGenre is null) return;
+        try
+        {
+            await FilmService.GenreLoeschenAsync(_loeschenGenre.Id);
+            ToastService.Erfolg("Genre gelöscht");
+            _loeschenGenre = null;
+            await Laden();
+        }
+        catch (Exception ex)
+        {
+            _fehler        = $"Löschen fehlgeschlagen: {ex.InnerException?.Message ?? ex.Message}";
+            _loeschenGenre = null;
+        }
+    }
+}

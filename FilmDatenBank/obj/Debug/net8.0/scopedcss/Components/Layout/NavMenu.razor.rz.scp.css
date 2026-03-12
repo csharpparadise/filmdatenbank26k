@@ -1,0 +1,163 @@
+/* ── Sidebar Brand ── */
+/* Sidebar always has a dark background (#1A1D26), so text colors
+   are hardcoded here rather than relying on the light-theme CSS vars. */
+
+.sidebar-brand[b-gefqv5o05c] {
+    height: 3.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
+}
+
+.brand-link[b-gefqv5o05c] {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: #E8E3DC !important;
+    transition: opacity var(--transition);
+}
+
+.brand-link:hover[b-gefqv5o05c] {
+    opacity: 0.85;
+    color: #E8E3DC !important;
+}
+
+.brand-icon[b-gefqv5o05c] {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: #C89A5A;
+    flex-shrink: 0;
+}
+
+.brand-name[b-gefqv5o05c] {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+/* ── Mobile hamburger toggle ── */
+.navbar-toggler[b-gefqv5o05c] {
+    appearance: none;
+    cursor: pointer;
+    width: 2.75rem;
+    height: 2.25rem;
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28200,190,180,0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.4rem transparent;
+    transition: all var(--transition);
+}
+
+.navbar-toggler:checked[b-gefqv5o05c] {
+    background-color: rgba(200, 154, 90, 0.15);
+    border-color: rgba(200, 154, 90, 0.35);
+}
+
+/* ── Nav scrollable area ── */
+.nav-scrollable[b-gefqv5o05c] {
+    display: none;
+    padding: 0.75rem 0;
+}
+
+.navbar-toggler:checked ~ .nav-scrollable[b-gefqv5o05c] {
+    display: block;
+}
+
+/* ── Nav item & link ── */
+.nav-item[b-gefqv5o05c] {
+    padding: 0.1rem 0.875rem;
+}
+
+.nav-item[b-gefqv5o05c]  .nav-link {
+    color: #7A7A8E;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    width: 100%;
+    transition: all var(--transition);
+    text-decoration: none;
+}
+
+.nav-item[b-gefqv5o05c]  .nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #C8C0B4;
+}
+
+.nav-item[b-gefqv5o05c]  a.active {
+    background: rgba(200, 154, 90, 0.14);
+    border-color: rgba(200, 154, 90, 0.32);
+    color: #C89A5A;
+}
+
+.nav-item[b-gefqv5o05c]  a.active .nav-icon {
+    color: #C89A5A;
+    opacity: 1;
+}
+
+.nav-icon[b-gefqv5o05c] {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity var(--transition);
+}
+
+.nav-item[b-gefqv5o05c]  .nav-link:hover .nav-icon {
+    opacity: 0.85;
+}
+
+.nav-divider[b-gefqv5o05c] {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 0.5rem 0.875rem;
+}
+
+/* ── Desktop ── */
+@media (min-width: 641px) {
+    .navbar-toggler[b-gefqv5o05c] {
+        display: none;
+    }
+
+    .nav-scrollable[b-gefqv5o05c] {
+        display: block;
+        height: calc(100vh - 3.75rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .nav-scrollable[b-gefqv5o05c]::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .nav-scrollable[b-gefqv5o05c]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .nav-scrollable[b-gefqv5o05c]::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+    }
+}
+
+/* ── Mobile brand row styling ── */
+@media (max-width: 640.98px) {
+    .sidebar-brand[b-gefqv5o05c] {
+        position: relative;
+    }
+}

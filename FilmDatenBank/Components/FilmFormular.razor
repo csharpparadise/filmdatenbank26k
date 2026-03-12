@@ -1,0 +1,161 @@
+@* Shared form fields for Add and Edit pages *@
+
+<div class="row">
+    <div class="col-md-8 mb-3">
+        <label class="form-label">Titel *</label>
+        <InputText class="form-control" @bind-Value="Film.Titel" />
+        <ValidationMessage For="() => Film.Titel" />
+    </div>
+    <div class="col-md-2 mb-3">
+        <label class="form-label">Film-Nummer *</label>
+        <InputText class="form-control" @bind-Value="Film.FilmNummer" />
+        <ValidationMessage For="() => Film.FilmNummer" />
+    </div>
+    <div class="col-md-2 mb-3">
+        <label class="form-label">Disc-Typ</label>
+        <InputSelect class="form-select" @bind-Value="Film.DiscType">
+            <option value="DVD">DVD</option>
+            <option value="BD">Blu-ray</option>
+            <option value="4K">4K UHD</option>
+            <option value="VHS">VHS</option>
+        </InputSelect>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Aufnahmedatum</label>
+        <InputDate class="form-control" @bind-Value="Film.Aufnahme" />
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Ablage</label>
+        <InputSelect class="form-select" @bind-Value="Film.AblageId">
+            <option value="">-- keine --</option>
+            @foreach (var ablage in VerfuegbareAblagen)
+            {
+                <option value="@ablage.Id">@ablage.Ort (@ablage.Typ)</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Bewertung (0–10)</label>
+        <InputNumber class="form-control" @bind-Value="Film.Bewertung" min="0" max="10" />
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Genre</label>
+    <div class="d-flex flex-wrap gap-3">
+        @foreach (var genre in VerfuegbareGenres)
+        {
+            var gId = genre.Id;
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="genre_@gId"
+                       checked="@_selectedGenreIds.Contains(gId)"
+                       @onchange="e => ToggleGenre(gId, (bool)e.Value!)" />
+                <label class="form-check-label" for="genre_@gId">@genre.Name</label>
+            </div>
+        }
+        @if (VerfuegbareGenres.Count == 0)
+        {
+            <span class="text-muted small">Keine Genres verfügbar</span>
+        }
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Bemerkung</label>
+    <InputTextArea class="form-control" @bind-Value="Film.Bemerkung" rows="4" />
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">TMDB-ID</label>
+        <InputText class="form-control" @bind-Value="Film.TmdbId" placeholder="z. B. 550" />
+        <div class="form-text">Numerische ID von TheMovieDB.org</div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Trailer-URL</label>
+        <InputText class="form-control" @bind-Value="Film.Trailer" />
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <div class="form-check">
+            <InputCheckbox class="form-check-input" id="chkAusgeliehen" @bind-Value="Film.IstAusgeliehen" />
+            <label class="form-check-label" for="chkAusgeliehen">Ausgeliehen</label>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="form-check">
+            <InputCheckbox class="form-check-input" id="chkMarkiert" @bind-Value="Film.IstMarkiert" />
+            <label class="form-check-label" for="chkMarkiert">Markiert</label>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="form-check">
+            <InputCheckbox class="form-check-input" id="chkGesperrt" @bind-Value="Film.IstGesperrt" />
+            <label class="form-check-label" for="chkGesperrt">Gesperrt</label>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Cover-Bild</label>
+    <div class="d-flex gap-3 align-items-start flex-wrap">
+        @if (Film.Thumbnail is { Length: > 0 })
+        {
+            <img src="data:@MimeType(Film.Thumbnail);base64,@Convert.ToBase64String(Film.Thumbnail)"
+                 style="height: 160px; object-fit: contain; border: 1px solid #dee2e6; border-radius: 4px;" />
+        }
+        <div>
+            <InputFile OnChange="ThumbnailHochladen" accept="image/*" class="form-control" />
+            <div class="form-text">Max. 2 MB · JPEG, PNG oder GIF</div>
+            @if (Film.Thumbnail is { Length: > 0 })
+            {
+                <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                        @onclick="() => Film.Thumbnail = null">Cover entfernen</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Film Film { get; set; } = default!;
+
+    [Parameter]
+    public List<Genre> VerfuegbareGenres { get; set; } = [];
+
+    [Parameter]
+    public List<Ablage> VerfuegbareAblagen { get; set; } = [];
+
+    private HashSet<int> _selectedGenreIds = [];
+
+    protected override void OnParametersSet()
+    {
+        _selectedGenreIds = [.. Film.Genres.Select(g => g.Id)];
+    }
+
+    private void ToggleGenre(int genreId, bool selected)
+    {
+        if (selected) _selectedGenreIds.Add(genreId);
+        else _selectedGenreIds.Remove(genreId);
+        Film.Genres = VerfuegbareGenres.Where(g => _selectedGenreIds.Contains(g.Id)).ToList();
+    }
+
+    private async Task ThumbnailHochladen(InputFileChangeEventArgs e)
+    {
+        using var stream = e.File.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        Film.Thumbnail = ms.ToArray();
+    }
+
+    private static string MimeType(byte[] b) =>
+        b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 ? "image/png"  :
+        b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 ? "image/jpeg" :
+        b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 ? "image/gif"  :
+        "image/jpeg";
+}

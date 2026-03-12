@@ -1,0 +1,738 @@
+@page "/"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject NavigationManager Nav
+@inject ToastService ToastService
+
+<PageTitle>FilmDatenBank</PageTitle>
+
+<div class="filme-header">
+    <div class="filme-header-left">
+        <h1 class="page-heading">Meine Filme</h1>
+        @if (_result is not null)
+        {
+            <span class="filme-count-chip">@_result.GesamtAnzahl</span>
+        }
+    </div>
+    <a class="btn-add-film" href="/film/hinzufuegen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Film hinzufügen
+    </a>
+</div>
+
+<div class="search-wrapper">
+    <div class="search-bar">
+        <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input"
+               type="search"
+               placeholder="Titel, Film-Nummer oder Genre suchen …"
+               value="@_suchbegriff"
+               @oninput="OnSuche"
+               @onfocus="AutocompleteOeffnen"
+               @onblur="AutocompleteSchliessen"
+               @onkeydown="OnSearchKeydown"
+               @onkeydown:preventDefault="_preventKeyDefault"
+               aria-label="Filmsuche"
+               aria-autocomplete="list"
+               aria-expanded="@(_autocompleteOffen && _vorschlaege.Count > 0)"
+               aria-activedescendant="@(_acSelectedIndex >= 0 ? $"ac-item-{_acSelectedIndex}" : null)" />
+        @if (!string.IsNullOrEmpty(_suchbegriff))
+        {
+            <button class="search-clear" @onclick="SucheLeeren" aria-label="Suche löschen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        }
+    </div>
+
+    @if (_autocompleteOffen && _vorschlaege.Count > 0)
+    {
+        <div class="ac-dropdown" role="listbox">
+            @for (var i = 0; i < _vorschlaege.Count; i++)
+            {
+                var idx = i;
+                var vorschlag = _vorschlaege[idx];
+                <button class="ac-item ac-item--@(vorschlag.Typ == "Film" ? "film" : "genre") @(idx == _acSelectedIndex ? "ac-item--selected" : "")"
+                        id="ac-item-@idx"
+                        role="option"
+                        aria-selected="@(idx == _acSelectedIndex)"
+                        @onmousedown="() => VorschlagWaehlen(vorschlag.Text)">
+                    <span class="ac-text">@vorschlag.Text</span>
+                    <span class="ac-typ">@vorschlag.Typ</span>
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<div class="sort-bar">
+    <span class="sort-label">Sortierung:</span>
+    @foreach (var (feld, bezeichnung) in new[] { ("Nummer", "Nummer"), ("Titel", "Titel"), ("Datum", "Aufnahmedatum") })
+    {
+        var f = feld;
+        var aktiv = _sortFeld == f;
+        <button class="sort-btn @(aktiv ? "sort-btn--aktiv" : "")"
+                @onclick="() => SortierungWaehlen(f)"
+                aria-pressed="@aktiv">
+            @bezeichnung
+            @if (aktiv)
+            {
+                <svg class="sort-arrow @(_sortAufsteigend ? "" : "sort-arrow--desc")"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="18 15 12 9 6 15"/>
+                </svg>
+            }
+        </button>
+    }
+
+    <button class="sort-btn filter-toggle-btn @(_filterBarOffen ? "sort-btn--aktiv" : "")"
+            @onclick="() => _filterBarOffen = !_filterBarOffen"
+            aria-pressed="@_filterBarOffen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:0.85rem;height:0.85rem">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+        Filter
+        @if (HatAktiveFilter())
+        {
+            <span class="filter-badge-count">!</span>
+        }
+    </button>
+</div>
+
+@if (_filterBarOffen)
+{
+    <div class="filter-bar">
+        @if (_verfuegbareGenres.Count > 0)
+        {
+            <div class="filter-group">
+                <span class="filter-group-label">Genre</span>
+                <div class="filter-chips">
+                    @foreach (var genre in _verfuegbareGenres)
+                    {
+                        var g = genre;
+                        <button class="filter-chip @(_filterGenreIds.Contains(g.Id) ? "filter-chip--active" : "")"
+                                @onclick="() => ToggleGenreFilter(g.Id)">
+                            @g.Name
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="filter-group">
+            <span class="filter-group-label">Disc-Typ</span>
+            <div class="filter-chips">
+                @foreach (var dt in _alleDiscTypes)
+                {
+                    var d = dt;
+                    <button class="filter-chip @(_filterDiscTypes.Contains(d) ? "filter-chip--active" : "")"
+                            @onclick="() => ToggleDiscFilter(d)">
+                        @d
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <span class="filter-group-label">Bewertung</span>
+            <div class="filter-rating-row">
+                <input type="number" class="form-control form-control-sm filter-rating-input"
+                       min="0" max="10" placeholder="Min"
+                       value="@_filterBewertungMin"
+                       @onchange="async e => { _filterBewertungMin = ParseNullableInt(e); await AnwendenFilter(); }" />
+                <span class="filter-rating-sep">–</span>
+                <input type="number" class="form-control form-control-sm filter-rating-input"
+                       min="0" max="10" placeholder="Max"
+                       value="@_filterBewertungMax"
+                       @onchange="async e => { _filterBewertungMax = ParseNullableInt(e); await AnwendenFilter(); }" />
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <span class="filter-group-label">Status</span>
+            <div class="filter-chips">
+                <button class="filter-chip @(_filterAusgeliehen ? "filter-chip--active" : "")"
+                        @onclick="async () => { _filterAusgeliehen = !_filterAusgeliehen; await AnwendenFilter(); }">
+                    Ausgeliehen
+                </button>
+                <button class="filter-chip @(_filterMarkiert ? "filter-chip--active" : "")"
+                        @onclick="async () => { _filterMarkiert = !_filterMarkiert; await AnwendenFilter(); }">
+                    Markiert
+                </button>
+                <button class="filter-chip @(_filterGesperrt ? "filter-chip--active" : "")"
+                        @onclick="async () => { _filterGesperrt = !_filterGesperrt; await AnwendenFilter(); }">
+                    Gesperrt
+                </button>
+            </div>
+        </div>
+
+        @if (HatAktiveFilter())
+        {
+            <button class="filter-clear-btn" @onclick="FilterZuruecksetzen">Alle Filter zurücksetzen</button>
+        }
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger mt-3">@_fehler</div>
+}
+
+@if (_result is null)
+{
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <span>Wird geladen …</span>
+    </div>
+}
+else if (_result.Items.Count == 0)
+{
+    <div class="empty-state">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="2.5"/>
+            <line x1="7" y1="2" x2="7" y2="22"/>
+            <line x1="17" y1="2" x2="17" y2="22"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+        </svg>
+        @if (string.IsNullOrEmpty(_suchbegriff) && !HatAktiveFilter())
+        {
+            <p>Noch keine Filme vorhanden.</p>
+            <a class="btn-add-film" href="/film/hinzufuegen">Ersten Film hinzufügen</a>
+        }
+        else
+        {
+            <p>Keine Filme für die aktuelle Suche/Filter gefunden.</p>
+        }
+    </div>
+}
+else
+{
+    <div class="filme-list">
+        @{int animIdx = 0;}
+        @foreach (var film in _result.Items)
+        {
+            var animDelay = $"{animIdx * 35}ms";
+            animIdx++;
+            <div class="film-card" style="animation-delay: @animDelay">
+                <div class="film-poster">
+                    @if (film.Thumbnail is { Length: > 0 })
+                    {
+                        <img src="data:@MimeType(film.Thumbnail);base64,@Convert.ToBase64String(film.Thumbnail)"
+                             alt="Cover von @film.Titel"
+                             loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="film-poster-placeholder" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="2" width="20" height="20" rx="2.5"/>
+                                <line x1="7" y1="2" x2="7" y2="22"/>
+                                <line x1="17" y1="2" x2="17" y2="22"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <line x1="2" y1="7" x2="7" y2="7"/>
+                                <line x1="17" y1="7" x2="22" y2="7"/>
+                            </svg>
+                        </div>
+                    }
+                </div>
+
+                <div class="film-content">
+                    <div class="film-top-row">
+                        <div class="film-badges">
+                            <span class="film-nummer">@film.AnzeigeNummer</span>
+                            <span class="disc-badge disc-@DiscTypeClass(film.DiscType)">@film.DiscType</span>
+                        </div>
+                        <div class="film-status-badges">
+                            @if (film.IstAusgeliehen) { <span class="status-pill status-ausgeliehen">Ausgeliehen</span> }
+                            @if (film.IstMarkiert)    { <span class="status-pill status-markiert">Markiert</span> }
+                            @if (film.IstGesperrt)    { <span class="status-pill status-gesperrt">Gesperrt</span> }
+                        </div>
+                    </div>
+
+                    <h2 class="film-titel">@film.Titel</h2>
+
+                    @if (film.Genres.Any())
+                    {
+                        <div class="film-genres">
+                            @foreach (var g in film.Genres)
+                            {
+                                <span class="genre-tag">@g.Name</span>
+                            }
+                        </div>
+                    }
+
+                    <div class="film-footer-row">
+                        <div class="film-meta">
+                            @if (film.Ablage is not null)
+                            {
+                                <span class="meta-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <polyline points="21 8 21 21 3 21 3 8"/>
+                                        <rect x="1" y="3" width="22" height="5"/>
+                                        <line x1="10" y1="12" x2="14" y2="12"/>
+                                    </svg>
+                                    @film.Ablage.Ort
+                                </span>
+                            }
+                            @if (film.Bewertung > 0)
+                            {
+                                <span class="meta-item meta-rating">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    <strong>@film.Bewertung</strong><span class="rating-max">/10</span>
+                                </span>
+                            }
+                        </div>
+                        <div class="film-actions">
+                            <a class="film-action-btn film-action-details" href="/film/details/@film.Id">Details</a>
+                            <a class="film-action-btn film-action-edit" href="/film/bearbeiten/@film.Id">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </a>
+                            <button class="film-action-btn film-action-delete" @onclick="() => LoeschenBestaetigen(film)" aria-label="Film löschen">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14H6L5 6"/>
+                                    <path d="M10 11v6"/>
+                                    <path d="M14 11v6"/>
+                                    <path d="M9 6V4h6v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (_result.GesamtSeiten > 1)
+    {
+        <div class="paging" role="navigation" aria-label="Seitennavigation">
+            <button class="page-btn page-btn-arrow"
+                    disabled="@(_seite == 1)"
+                    @onclick="() => GeheZuSeite(_seite - 1)"
+                    aria-label="Vorherige Seite">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+
+            @foreach (var p in SeitenNummern())
+            {
+                if (p == -1)
+                {
+                    <span class="page-ellipsis">…</span>
+                }
+                else
+                {
+                    var pageNum = p;
+                    <button class="page-btn @(_seite == pageNum ? "page-btn--active" : "")"
+                            @onclick="() => GeheZuSeite(pageNum)"
+                            aria-label="Seite @pageNum"
+                            aria-current="@(_seite == pageNum ? "page" : null)">
+                        @pageNum
+                    </button>
+                }
+            }
+
+            <button class="page-btn page-btn-arrow"
+                    disabled="@(_seite == _result.GesamtSeiten)"
+                    @onclick="() => GeheZuSeite(_seite + 1)"
+                    aria-label="Nächste Seite">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"/>
+                </svg>
+            </button>
+        </div>
+        <p class="paging-info">Seite @_seite von @_result.GesamtSeiten · @_result.GesamtAnzahl Film(e)</p>
+    }
+}
+
+<DeleteConfirmation IsVisible="@(_loeschenFilm is not null)"
+                    Title="Film löschen?"
+                    Message="@(_loeschenFilm is not null ? $"{_loeschenFilm.Titel} wird unwiderruflich aus der Datenbank entfernt." : "")"
+                    OnConfirm="LoeschenBestaetigt"
+                    OnCancel="LoeschenAbbrechen" />
+
+@code {
+    // ── Query-Parameter (URL-State) ──
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? QParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "sort")]
+    public string? SortParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "asc")]
+    public bool? AscParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "seite")]
+    public int? SeiteParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "genres")]
+    public string? GenresParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "disc")]
+    public string? DiscParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "rmin")]
+    public int? RminParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "rmax")]
+    public int? RmaxParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "ausg")]
+    public bool? AusgParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "mark")]
+    public bool? MarkParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "gesp")]
+    public bool? GespParam { get; set; }
+
+    // ── State ──
+    private PagedResult<Film>? _result;
+    private string _suchbegriff = string.Empty;
+    private Film?  _loeschenFilm;
+    private string _fehler = string.Empty;
+    private bool   _initialized = false;
+
+    private int _seite = 1;
+    private const int ProSeite = 20;
+
+    // ── Autocomplete ──
+    private List<AutocompleteVorschlag> _vorschlaege = [];
+    private bool _autocompleteOffen = false;
+    private int  _acSelectedIndex = -1;
+    private bool _preventKeyDefault = false;
+
+    // ── Sortierung ──
+    private string _sortFeld      = "Nummer";
+    private bool   _sortAufsteigend = true;
+
+    // ── Filter (A2) ──
+    private List<Genre> _verfuegbareGenres = [];
+    private HashSet<int> _filterGenreIds = [];
+    private HashSet<string> _filterDiscTypes = [];
+    private int? _filterBewertungMin;
+    private int? _filterBewertungMax;
+    private bool _filterAusgeliehen;
+    private bool _filterMarkiert;
+    private bool _filterGesperrt;
+    private bool _filterBarOffen;
+
+    private static readonly string[] _alleDiscTypes = ["DVD", "Blu-ray (BD)", "4K UHD", "VHS"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _suchbegriff     = QParam ?? string.Empty;
+        _sortFeld        = SortParam is "Titel" or "Datum" ? SortParam : "Nummer";
+        _sortAufsteigend = AscParam ?? true;
+        _seite           = Math.Max(1, SeiteParam ?? 1);
+
+        // Filter aus URL
+        if (!string.IsNullOrEmpty(GenresParam))
+            _filterGenreIds = GenresParam.Split(',').Select(s => int.TryParse(s, out var id) ? id : 0).Where(id => id > 0).ToHashSet();
+        if (!string.IsNullOrEmpty(DiscParam))
+            _filterDiscTypes = DiscParam.Split(',').ToHashSet();
+        _filterBewertungMin = RminParam;
+        _filterBewertungMax = RmaxParam;
+        _filterAusgeliehen  = AusgParam ?? false;
+        _filterMarkiert     = MarkParam ?? false;
+        _filterGesperrt     = GespParam ?? false;
+
+        if (HatAktiveFilter()) _filterBarOffen = true;
+
+        _verfuegbareGenres = await FilmService.AlleGenreAsync();
+        await LadeFilme();
+        _initialized = true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_initialized) return;
+
+        var neuQ    = QParam ?? string.Empty;
+        var neuSort = SortParam is "Titel" or "Datum" ? SortParam : "Nummer";
+        var neuAsc  = AscParam ?? true;
+        var neuSeite = Math.Max(1, SeiteParam ?? 1);
+
+        if (neuQ == _suchbegriff && neuSort == _sortFeld &&
+            neuAsc == _sortAufsteigend && neuSeite == _seite)
+            return;
+
+        _suchbegriff     = neuQ;
+        _sortFeld        = neuSort;
+        _sortAufsteigend = neuAsc;
+        _seite           = neuSeite;
+        await LadeFilme();
+    }
+
+    private async Task LadeFilme()
+    {
+        _result = await FilmService.SuchePagedAsync(new FilmSucheParameter
+        {
+            Suchbegriff    = _suchbegriff,
+            SortFeld       = _sortFeld,
+            SortAufsteigend = _sortAufsteigend,
+            Seite          = _seite,
+            ProSeite       = ProSeite,
+            GenreIds       = _filterGenreIds.Count > 0 ? _filterGenreIds.ToList() : null,
+            DiscTypes      = _filterDiscTypes.Count > 0 ? _filterDiscTypes.ToList() : null,
+            BewertungMin   = _filterBewertungMin,
+            BewertungMax   = _filterBewertungMax,
+            IstAusgeliehen = _filterAusgeliehen ? true : null,
+            IstMarkiert    = _filterMarkiert ? true : null,
+            IstGesperrt    = _filterGesperrt ? true : null,
+        });
+    }
+
+    private void UrlAktualisieren()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(_suchbegriff)) parts.Add($"q={Uri.EscapeDataString(_suchbegriff)}");
+        if (_sortFeld != "Nummer")               parts.Add($"sort={_sortFeld}");
+        if (!_sortAufsteigend)                   parts.Add("asc=false");
+        if (_seite > 1)                          parts.Add($"seite={_seite}");
+        if (_filterGenreIds.Count > 0)           parts.Add($"genres={string.Join(",", _filterGenreIds)}");
+        if (_filterDiscTypes.Count > 0)          parts.Add($"disc={Uri.EscapeDataString(string.Join(",", _filterDiscTypes))}");
+        if (_filterBewertungMin.HasValue)        parts.Add($"rmin={_filterBewertungMin}");
+        if (_filterBewertungMax.HasValue)        parts.Add($"rmax={_filterBewertungMax}");
+        if (_filterAusgeliehen)                  parts.Add("ausg=true");
+        if (_filterMarkiert)                     parts.Add("mark=true");
+        if (_filterGesperrt)                     parts.Add("gesp=true");
+
+        var url = parts.Count > 0 ? "/?" + string.Join("&", parts) : "/";
+        Nav.NavigateTo(url, replace: true);
+    }
+
+    private IEnumerable<int> SeitenNummern()
+    {
+        var gesamt = _result?.GesamtSeiten ?? 0;
+        if (gesamt <= 7)
+            return Enumerable.Range(1, gesamt);
+
+        var pages = new List<int> { 1 };
+        int start = Math.Max(2, _seite - 1);
+        int end   = Math.Min(gesamt - 1, _seite + 1);
+
+        if (start > 2)   pages.Add(-1);
+        for (int i = start; i <= end; i++) pages.Add(i);
+        if (end < gesamt - 1) pages.Add(-1);
+        pages.Add(gesamt);
+
+        return pages;
+    }
+
+    private async Task OnSuche(ChangeEventArgs e)
+    {
+        _suchbegriff = e.Value?.ToString() ?? string.Empty;
+        _seite = 1;
+        await LadeFilme();
+        UrlAktualisieren();
+        await AktualisierteVorschlaege();
+    }
+
+    private async Task SucheLeeren()
+    {
+        _suchbegriff = string.Empty;
+        _seite = 1;
+        _vorschlaege = [];
+        _autocompleteOffen = false;
+        _acSelectedIndex = -1;
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    private async Task AktualisierteVorschlaege()
+    {
+        if (_suchbegriff.Trim().Length >= 3)
+        {
+            _vorschlaege = await FilmService.AutocompleteAsync(_suchbegriff);
+            _autocompleteOffen = _vorschlaege.Count > 0;
+        }
+        else
+        {
+            _vorschlaege = [];
+            _autocompleteOffen = false;
+        }
+        _acSelectedIndex = -1;
+    }
+
+    private async Task VorschlagWaehlen(string text)
+    {
+        _suchbegriff = text;
+        _seite = 1;
+        _vorschlaege = [];
+        _autocompleteOffen = false;
+        _acSelectedIndex = -1;
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    private void AutocompleteOeffnen()
+    {
+        if (_vorschlaege.Count > 0)
+            _autocompleteOffen = true;
+    }
+
+    private async Task AutocompleteSchliessen()
+    {
+        await Task.Delay(150);
+        _autocompleteOffen = false;
+        _acSelectedIndex = -1;
+    }
+
+    // ── Keyboard-Navigation (A3) ──
+    private void OnSearchKeydown(KeyboardEventArgs e)
+    {
+        _preventKeyDefault = false;
+
+        if (!_autocompleteOffen || _vorschlaege.Count == 0)
+            return;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                _preventKeyDefault = true;
+                _acSelectedIndex = (_acSelectedIndex + 1) % _vorschlaege.Count;
+                break;
+            case "ArrowUp":
+                _preventKeyDefault = true;
+                _acSelectedIndex = _acSelectedIndex <= 0 ? _vorschlaege.Count - 1 : _acSelectedIndex - 1;
+                break;
+            case "Enter":
+                if (_acSelectedIndex >= 0 && _acSelectedIndex < _vorschlaege.Count)
+                {
+                    _preventKeyDefault = true;
+                    _ = VorschlagWaehlen(_vorschlaege[_acSelectedIndex].Text);
+                }
+                break;
+            case "Escape":
+                _autocompleteOffen = false;
+                _acSelectedIndex = -1;
+                break;
+        }
+    }
+
+    private async Task SortierungWaehlen(string feld)
+    {
+        if (_sortFeld == feld)
+            _sortAufsteigend = !_sortAufsteigend;
+        else
+        {
+            _sortFeld = feld;
+            _sortAufsteigend = true;
+        }
+        _seite = 1;
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    private async Task GeheZuSeite(int seite)
+    {
+        _seite = Math.Clamp(seite, 1, _result?.GesamtSeiten ?? 1);
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    // ── Filter (A2) ──
+    private bool HatAktiveFilter() =>
+        _filterGenreIds.Count > 0 || _filterDiscTypes.Count > 0 ||
+        _filterBewertungMin.HasValue || _filterBewertungMax.HasValue ||
+        _filterAusgeliehen || _filterMarkiert || _filterGesperrt;
+
+    private async Task ToggleGenreFilter(int id)
+    {
+        if (!_filterGenreIds.Remove(id)) _filterGenreIds.Add(id);
+        await AnwendenFilter();
+    }
+
+    private async Task ToggleDiscFilter(string dt)
+    {
+        if (!_filterDiscTypes.Remove(dt)) _filterDiscTypes.Add(dt);
+        await AnwendenFilter();
+    }
+
+    private async Task AnwendenFilter()
+    {
+        _seite = 1;
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    private async Task FilterZuruecksetzen()
+    {
+        _filterGenreIds.Clear();
+        _filterDiscTypes.Clear();
+        _filterBewertungMin = null;
+        _filterBewertungMax = null;
+        _filterAusgeliehen = false;
+        _filterMarkiert = false;
+        _filterGesperrt = false;
+        _seite = 1;
+        await LadeFilme();
+        UrlAktualisieren();
+    }
+
+    private static int? ParseNullableInt(ChangeEventArgs e)
+    {
+        var s = e.Value?.ToString();
+        return int.TryParse(s, out var v) ? v : null;
+    }
+
+    // ── Löschen ──
+    private void LoeschenBestaetigen(Film film)
+    {
+        _loeschenFilm = film;
+        _fehler = string.Empty;
+    }
+
+    private void LoeschenAbbrechen()
+    {
+        _loeschenFilm = null;
+    }
+
+    private async Task LoeschenBestaetigt()
+    {
+        if (_loeschenFilm is null) return;
+        try
+        {
+            var titel = _loeschenFilm.Titel;
+            await FilmService.LoeschenAsync(_loeschenFilm.Id);
+            _loeschenFilm = null;
+            await LadeFilme();
+            ToastService.Erfolg(titel + " wurde gelöscht");
+        }
+        catch (Exception ex)
+        {
+            _fehler = $"Fehler beim Löschen: {ex.Message}";
+            _loeschenFilm = null;
+        }
+    }
+
+    private static string MimeType(byte[] b) =>
+        b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 ? "image/png"  :
+        b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 ? "image/jpeg" :
+        b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 ? "image/gif"  :
+        "image/jpeg";
+
+    private static string DiscTypeClass(string discType) => discType switch
+    {
+        "Blu-ray (BD)" => "bluray",
+        "4K UHD"       => "4k",
+        "VHS"          => "vhs",
+        _              => "dvd"
+    };
+}

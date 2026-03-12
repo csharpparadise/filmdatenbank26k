@@ -1,0 +1,373 @@
+@page "/film/details/{Id:int}"
+@rendermode InteractiveServer
+@inject IFilmService FilmService
+@inject ITmdbService TmdbService
+@inject ToastService ToastService
+
+<PageTitle>@(_film?.Titel ?? "Film-Details")</PageTitle>
+
+@if (_film is null && string.IsNullOrEmpty(_ladeFehler))
+{
+    <div class="fd-loading">
+        <div class="fd-loading-spinner"></div>
+        <span>Wird geladen …</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(_ladeFehler))
+{
+    <div class="fd-error-state">
+        <div class="alert alert-danger">@_ladeFehler</div>
+        <a class="fd-back-link" href="/">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+}
+else if (_film is not null)
+{
+    <!-- Top Navigation Bar -->
+    <div class="fd-topbar">
+        <a class="fd-back-link" href="/">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Übersicht
+        </a>
+        <a class="fd-edit-link" href="/film/bearbeiten/@_film.Id">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Bearbeiten
+        </a>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="fd-layout">
+
+        <!-- Left: Poster -->
+        <aside class="fd-poster-col">
+            @if (_film.Thumbnail is { Length: > 0 })
+            {
+                <img class="fd-poster-img"
+                     src="data:@MimeType(_film.Thumbnail);base64,@Convert.ToBase64String(_film.Thumbnail)"
+                     alt="Cover von @_film.Titel" />
+            }
+            else
+            {
+                <div class="fd-poster-placeholder" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.5"/>
+                        <line x1="7" y1="2" x2="7" y2="22"/>
+                        <line x1="17" y1="2" x2="17" y2="22"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <line x1="2" y1="7" x2="7" y2="7"/>
+                        <line x1="17" y1="7" x2="22" y2="7"/>
+                        <line x1="17" y1="17" x2="22" y2="17"/>
+                        <line x1="2" y1="17" x2="7" y2="17"/>
+                    </svg>
+                </div>
+            }
+        </aside>
+
+        <!-- Right: All content -->
+        <div class="fd-content-col">
+
+            <!-- Hero: Badges + Title + Genres + Highlights -->
+            <header class="fd-hero">
+                <div class="fd-hero-badges">
+                    <span class="fd-film-num">@_film.AnzeigeNummer</span>
+                    <span class="fd-disc-badge fd-disc-@DiscTypeClass(_film.DiscType)">@_film.DiscType</span>
+                    @if (_film.IstAusgeliehen) { <span class="fd-status-pill fd-status-ausgeliehen">Ausgeliehen</span> }
+                    @if (_film.IstMarkiert)    { <span class="fd-status-pill fd-status-markiert">Markiert</span> }
+                    @if (_film.IstGesperrt)    { <span class="fd-status-pill fd-status-gesperrt">Gesperrt</span> }
+                </div>
+
+                <h1 class="fd-title">@_film.Titel</h1>
+
+                @if (_film.Genres.Any())
+                {
+                    <div class="fd-genres">
+                        @foreach (var g in _film.Genres)
+                        {
+                            <span class="fd-genre-tag">@g.Name</span>
+                        }
+                    </div>
+                }
+
+                <div class="fd-highlights">
+                    @if (_film.Bewertung > 0)
+                    {
+                        <div class="fd-rating">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <span class="fd-rating-num">@_film.Bewertung</span>
+                            <span class="fd-rating-max">/ 10</span>
+                        </div>
+                    }
+                    @if (_film.Ablage is not null)
+                    {
+                        <div class="fd-highlight-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="21 8 21 21 3 21 3 8"/>
+                                <rect x="1" y="3" width="22" height="5"/>
+                                <line x1="10" y1="12" x2="14" y2="12"/>
+                            </svg>
+                            @_film.Ablage.Ort
+                            @if (!string.IsNullOrEmpty(_film.Ablage.Typ)) { <span class="fd-highlight-sub">@_film.Ablage.Typ</span> }
+                        </div>
+                    }
+                    @if (_tmdbInfo?.Runtime > 0)
+                    {
+                        <div class="fd-highlight-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            @_tmdbInfo.Runtime min
+                        </div>
+                    }
+                </div>
+            </header>
+
+            <!-- Divider -->
+            <div class="fd-divider"></div>
+
+            <!-- Meta section: local + TMDB integrated -->
+            <section class="fd-section">
+                <div class="fd-meta-grid">
+
+                    <!-- TMDB integrated data (if available) -->
+                    @if (_tmdbInfo is not null)
+                    {
+                        @if (!string.IsNullOrEmpty(_tmdbInfo.Director))
+                        {
+                            <span class="fd-meta-label">Regie</span>
+                            <span class="fd-meta-value">@_tmdbInfo.Director</span>
+                        }
+                        @if (_tmdbInfo.Budget > 0)
+                        {
+                            <span class="fd-meta-label">Budget</span>
+                            <span class="fd-meta-value">@($"{_tmdbInfo.Budget:N0} $")</span>
+                        }
+                        @if (_tmdbInfo.Revenue > 0)
+                        {
+                            <span class="fd-meta-label">Einspielergebnis</span>
+                            <span class="fd-meta-value">@($"{_tmdbInfo.Revenue:N0} $")</span>
+                        }
+                    }
+
+                    <span class="fd-meta-label">Aufnahme</span>
+                    <span class="fd-meta-value">@_film.Aufnahme.ToString("d. MMMM yyyy")</span>
+
+                    <span class="fd-meta-label">Ausgeliehen</span>
+                    <span class="fd-meta-value">@_film.CounterAusleihen ×</span>
+
+                    @if (!string.IsNullOrEmpty(_film.TmdbId))
+                    {
+                        <span class="fd-meta-label">TMDB</span>
+                        <span class="fd-meta-value">
+                            <a class="fd-tmdb-link" href="https://www.themoviedb.org/movie/@_film.TmdbId" target="_blank" rel="noopener">
+                                @_film.TmdbId
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                            </a>
+                        </span>
+                    }
+                </div>
+            </section>
+
+            <!-- Cast (TMDB) -->
+            @if (_tmdbInfo?.Hauptdarsteller is { Count: > 0 })
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section">
+                    <div class="fd-section-label">Besetzung</div>
+                    <div class="fd-cast">
+                        @foreach (var name in _tmdbInfo.Hauptdarsteller)
+                        {
+                            <span class="fd-actor-chip">@name</span>
+                        }
+                    </div>
+                </section>
+            }
+
+            <!-- TMDB load / loading / error states -->
+            @if (!string.IsNullOrEmpty(_film.TmdbId) && _tmdbInfo is null && string.IsNullOrEmpty(_tmdbFehler) && !_tmdbLaed)
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section">
+                    <button class="fd-tmdb-btn" @onclick="LadeTmdb">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        TMDB-Daten laden
+                    </button>
+                </section>
+            }
+
+            @if (_tmdbLaed)
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section fd-tmdb-loading">
+                    <div class="fd-loading-spinner fd-spinner-sm"></div>
+                    <span>TMDB-Daten werden geladen …</span>
+                </section>
+            }
+
+            @if (!string.IsNullOrEmpty(_tmdbFehler))
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section">
+                    <div class="fd-tmdb-error">@_tmdbFehler</div>
+                </section>
+            }
+
+            <!-- Bemerkung -->
+            @if (!string.IsNullOrEmpty(_film.Bemerkung))
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section">
+                    <div class="fd-section-label">Bemerkung</div>
+                    <blockquote class="fd-note">@_film.Bemerkung</blockquote>
+                </section>
+            }
+
+            <!-- Trailer -->
+            @if (!string.IsNullOrEmpty(_film.Trailer))
+            {
+                <div class="fd-divider"></div>
+                <section class="fd-section fd-trailer-section">
+                    <div class="fd-trailer-header">
+                        <div class="fd-section-label">Trailer</div>
+                        <a class="fd-trailer-ext" href="@_film.Trailer" target="_blank" rel="noopener">
+                            Extern öffnen
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                        </a>
+                    </div>
+                    @{ var embedUrl = GetYoutubeEmbedUrl(_film.Trailer); }
+                    @if (embedUrl is not null)
+                    {
+                        <div class="fd-player-wrap">
+                            <div class="fd-player-ratio">
+                                <iframe src="@embedUrl"
+                                        title="Trailer – @_film.Titel"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="fd-trailer-fallback" href="@_film.Trailer" target="_blank" rel="noopener">@_film.Trailer</a>
+                    }
+                </section>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Film?         _film;
+    private TmdbFilmInfo? _tmdbInfo;
+    private string        _ladeFehler = string.Empty;
+    private string        _tmdbFehler = string.Empty;
+    private bool          _tmdbLaed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _film = await FilmService.FilmNachIdAsync(Id);
+        if (_film is null)
+        {
+            _ladeFehler = $"Film mit ID {Id} nicht gefunden.";
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(_film.TmdbId))
+            await LadeTmdb();
+    }
+
+    private static string? GetYoutubeEmbedUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return null;
+
+        var host = uri.Host.Replace("www.", string.Empty).ToLower();
+
+        if (host == "youtu.be")
+        {
+            var id = uri.AbsolutePath.Trim('/');
+            return string.IsNullOrEmpty(id) ? null : $"https://www.youtube.com/embed/{id}";
+        }
+
+        if (host == "youtube.com")
+        {
+            var path = uri.AbsolutePath.ToLower();
+
+            if (path == "/watch")
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(uri.Query, @"[?&]v=([^&]+)");
+                return match.Success ? $"https://www.youtube.com/embed/{match.Groups[1].Value}" : null;
+            }
+
+            if (path.StartsWith("/embed/")) return url;
+
+            if (path.StartsWith("/shorts/"))
+            {
+                var id = path["/shorts/".Length..].Split('/')[0];
+                return string.IsNullOrEmpty(id) ? null : $"https://www.youtube.com/embed/{id}";
+            }
+        }
+
+        return null;
+    }
+
+    private static string MimeType(byte[] b) =>
+        b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 ? "image/png"  :
+        b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 ? "image/jpeg" :
+        b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 ? "image/gif"  :
+        "image/jpeg";
+
+    private static string DiscTypeClass(string discType) => discType switch
+    {
+        "Blu-ray (BD)" => "bluray",
+        "4K UHD"       => "4k",
+        "VHS"          => "vhs",
+        _              => "dvd"
+    };
+
+    private async Task LadeTmdb()
+    {
+        _tmdbFehler = string.Empty;
+        _tmdbLaed   = true;
+        try
+        {
+            _tmdbInfo = await TmdbService.GetFilmInfoAsync(_film!.TmdbId!);
+            if (_tmdbInfo is not null)
+                ToastService.Erfolg("TMDB-Daten geladen");
+        }
+        catch (Exception ex)
+        {
+            _tmdbFehler = ex.Message;
+        }
+        finally
+        {
+            _tmdbLaed = false;
+        }
+    }
+}

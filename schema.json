@@ -1,0 +1,155 @@
+﻿{
+    "DatabaseSchema": [
+        {
+            "Schema": "dbo",
+            "TableName": "tAblage",
+            "Columns": [
+                {
+                    "ColumnName": "ID",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "Ort",
+                    "DataType": "nvarchar",
+                    "MaxLength": 20,
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "Bemerkung",
+                    "DataType": "nvarchar",
+                    "MaxLength": 255,
+                    "IsNullable": "YES"
+                },
+                {
+                    "ColumnName": "Typ",
+                    "DataType": "nvarchar",
+                    "MaxLength": 20,
+                    "IsNullable": "NO"
+                }
+            ]
+        },
+        {
+            "Schema": "dbo",
+            "TableName": "tfilme",
+            "Columns": [
+                {
+                    "ColumnName": "fid",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fname",
+                    "DataType": "nvarchar",
+                    "MaxLength": 200,
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "faufnahme",
+                    "DataType": "datetime",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fbemerkung",
+                    "DataType": "nvarchar",
+                    "MaxLength": -1,
+                    "IsNullable": "YES"
+                },
+                {
+                    "ColumnName": "fbewertung",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fcausleih",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "frent",
+                    "DataType": "bit",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "flock",
+                    "DataType": "bit",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fmark",
+                    "DataType": "bit",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fASIN",
+                    "DataType": "nvarchar",
+                    "MaxLength": 50,
+                    "IsNullable": "YES"
+                },
+                {
+                    "ColumnName": "fFilmNummer",
+                    "DataType": "nvarchar",
+                    "MaxLength": 10,
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fAblage",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "fTrailer",
+                    "DataType": "varchar",
+                    "MaxLength": 200,
+                    "IsNullable": "YES"
+                },
+                {
+                    "ColumnName": "fThumbnail",
+                    "DataType": "image",
+                    "MaxLength": 2147483647,
+                    "IsNullable": "YES"
+                },
+                {
+                    "ColumnName": "fDiscType",
+                    "DataType": "varchar",
+                    "MaxLength": 10,
+                    "IsNullable": "NO",
+                    "DefaultValue": "('DVD')"
+                }
+            ]
+        },
+        {
+            "Schema": "dbo",
+            "TableName": "tFilmGenre",
+            "Columns": [
+                {
+                    "ColumnName": "Film",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "Genre",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                }
+            ]
+        },
+        {
+            "Schema": "dbo",
+            "TableName": "tgenre",
+            "Columns": [
+                {
+                    "ColumnName": "gid",
+                    "DataType": "int",
+                    "IsNullable": "NO"
+                },
+                {
+                    "ColumnName": "gname",
+                    "DataType": "nvarchar",
+                    "MaxLength": 50,
+                    "IsNullable": "NO"
+                }
+            ]
+        }
+    ]
+}

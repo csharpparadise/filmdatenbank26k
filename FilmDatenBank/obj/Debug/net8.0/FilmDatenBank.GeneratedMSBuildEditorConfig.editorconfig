@@ -1,0 +1,79 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = FilmDatenBank
+build_property.RootNamespace = FilmDatenBank
+build_property.ProjectDir = /Users/andreas/development/fdb-agentic/FilmDatenBank/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/andreas/development/fdb-agentic/FilmDatenBank
+build_property._RazorSourceGeneratorDebug = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/FilmFormular.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9GaWxtRm9ybXVsYXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/Ablagen.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BYmxhZ2VuLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/FilmBearbeiten.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9GaWxtQmVhcmJlaXRlbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/FilmHinzufuegen.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9GaWxtSGluenVmdWVnZW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/Genres.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9HZW5yZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/DeleteConfirmation.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EZWxldGVDb25maXJtYXRpb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ndg2trlklw
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-c7jg1ov24v
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-gefqv5o05c
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/FilmDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9GaWxtRGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-xuus1na45d
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Pages/Filme.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9GaWxtZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-q6um0mwa9g
+
+[/Users/andreas/development/fdb-agentic/FilmDatenBank/Components/Toast.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Ub2FzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-8d91ff03vl
