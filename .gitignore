@@ -43,6 +43,9 @@ Thumbs.db
 # Claude
 .claude/
 
+#MacOS
+.DS_Store
+
 ## Secrets / Environment
 appsettings.Development.json
 .env
