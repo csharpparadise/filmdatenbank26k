@@ -450,3 +450,57 @@ textarea.form-control {
     border-color: var(--border-strong);
     color: var(--text-muted);
 }
+
+/* ============================================================
+   Touch & Responsive Foundations
+   ============================================================ */
+
+/* ── Touch-device optimizations ── */
+@media (pointer: coarse) {
+    .btn {
+        min-height: 44px;
+    }
+
+    .btn-sm {
+        min-height: 38px;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        font-size: 16px; /* prevents iOS auto-zoom */
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .form-check {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* ── Active feedback for touch ── */
+@media (pointer: coarse) {
+    .btn:active {
+        transform: scale(0.98);
+    }
+}
+
+/* ── Form card responsive ── */
+@media (max-width: 639px) {
+    .form-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}

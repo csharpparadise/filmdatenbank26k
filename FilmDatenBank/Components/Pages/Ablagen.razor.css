@@ -1,0 +1,50 @@
+/* ── Ablagen: Table-to-Card on Mobile ── */
+@media (max-width: 639px) {
+    .table-responsive table thead {
+        display: none;
+    }
+
+    .table-responsive table,
+    .table-responsive table tbody,
+    .table-responsive table tr,
+    .table-responsive table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-responsive table tr {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .table-responsive table td {
+        padding: 0.35rem 0;
+        border: none;
+        text-align: left !important;
+    }
+
+    .table-responsive table td[data-label]:not([data-label=""])::before {
+        content: attr(data-label) ": ";
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-right: 0.35rem;
+    }
+
+    .table-responsive table td:last-child {
+        padding-top: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .table-responsive table td:last-child .btn {
+        min-height: 44px;
+    }
+}

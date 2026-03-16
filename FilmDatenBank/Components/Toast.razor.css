@@ -65,6 +65,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
     transition: color var(--transition), background var(--transition);
 }
 
@@ -76,4 +78,13 @@
 .toast-close svg {
     width: 0.8rem;
     height: 0.8rem;
+}
+
+/* ── Mobile ── */
+@media (max-width: 639px) {
+    .toast-container {
+        left: 0.5rem;
+        right: 0.5rem;
+        max-width: none;
+    }
 }

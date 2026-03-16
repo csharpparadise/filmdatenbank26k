@@ -40,6 +40,9 @@ Thumbs.db
 *.db-shm
 *.db-wal
 
+# Claude
+.claude/
+
 ## Secrets / Environment
 appsettings.Development.json
 .env

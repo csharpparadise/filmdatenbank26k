@@ -58,10 +58,10 @@ else
                     else
                     {
                         <tr>
-                            <td>@ablage.Ort</td>
-                            <td><span class="badge bg-secondary">@ablage.Typ</span></td>
-                            <td class="text-muted">@ablage.Bemerkung</td>
-                            <td class="text-end text-nowrap">
+                            <td data-label="Ort">@ablage.Ort</td>
+                            <td data-label="Typ"><span class="badge bg-secondary">@ablage.Typ</span></td>
+                            <td data-label="Bemerkung" class="text-muted">@ablage.Bemerkung</td>
+                            <td data-label="" class="text-end text-nowrap">
                                 <button class="btn btn-sm btn-outline-secondary me-1"
                                         @onclick="() => EditStarten(ablage)">Bearbeiten</button>
                                 <button class="btn btn-sm btn-outline-danger"

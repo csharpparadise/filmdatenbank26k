@@ -112,6 +112,7 @@ public class FilmService(IDbContextFactory<AppDbContext> dbFactory) : IFilmServi
         {
             "Titel" => p.SortAufsteigend ? query.OrderBy(f => f.Titel) : query.OrderByDescending(f => f.Titel),
             "Datum" => p.SortAufsteigend ? query.OrderBy(f => f.Aufnahme) : query.OrderByDescending(f => f.Aufnahme),
+            "Bewertung" => p.SortAufsteigend ? query.OrderBy(f => f.Bewertung) : query.OrderByDescending(f => f.Bewertung),
             _ => p.SortAufsteigend
                 ? query.OrderBy(f => f.FilmNummer).ThenBy(f => f.Titel)
                 : query.OrderByDescending(f => f.FilmNummer).ThenByDescending(f => f.Titel),

@@ -119,3 +119,19 @@
     border-color: #C92828;
     box-shadow: 0 0 0 3px var(--danger-glow);
 }
+
+/* ── Mobile ── */
+@media (max-width: 639px) {
+    .confirm-box {
+        max-width: calc(100vw - 2rem);
+    }
+
+    .confirm-actions {
+        flex-direction: column;
+    }
+
+    .confirm-btn {
+        min-height: 44px;
+        width: 100%;
+    }
+}

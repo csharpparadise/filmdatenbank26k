@@ -48,8 +48,8 @@ else
                     else
                     {
                         <tr>
-                            <td>@genre.Name</td>
-                            <td class="text-end text-nowrap">
+                            <td data-label="Name">@genre.Name</td>
+                            <td data-label="" class="text-end text-nowrap">
                                 <button class="btn btn-sm btn-outline-secondary me-1"
                                         @onclick="() => EditStarten(genre)">Bearbeiten</button>
                                 <button class="btn btn-sm btn-outline-danger"

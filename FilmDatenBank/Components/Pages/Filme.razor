@@ -3,6 +3,7 @@
 @inject IFilmService FilmService
 @inject NavigationManager Nav
 @inject ToastService ToastService
+@inject IJSRuntime JS
 
 <PageTitle>FilmDatenBank</PageTitle>
 
@@ -75,7 +76,7 @@
 
 <div class="sort-bar">
     <span class="sort-label">Sortierung:</span>
-    @foreach (var (feld, bezeichnung) in new[] { ("Nummer", "Nummer"), ("Titel", "Titel"), ("Datum", "Aufnahmedatum") })
+    @foreach (var (feld, bezeichnung) in new[] { ("Nummer", "Nummer"), ("Titel", "Titel"), ("Datum", "Aufnahmedatum"), ("Bewertung", "Bewertung") })
     {
         var f = feld;
         var aktiv = _sortFeld == f;
@@ -258,7 +259,7 @@ else
                         </div>
                     </div>
 
-                    <h2 class="film-titel">@film.Titel</h2>
+                    <h2 class="film-titel"><a class="film-titel-link" href="/film/details/@film.Id">@film.Titel</a></h2>
 
                     @if (film.Genres.Any())
                     {
@@ -418,8 +419,8 @@ else
     private bool _preventKeyDefault = false;
 
     // ── Sortierung ──
-    private string _sortFeld      = "Nummer";
-    private bool   _sortAufsteigend = true;
+    private string _sortFeld      = "Datum";
+    private bool   _sortAufsteigend = false;
 
     // ── Filter (A2) ──
     private List<Genre> _verfuegbareGenres = [];
@@ -437,8 +438,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         _suchbegriff     = QParam ?? string.Empty;
-        _sortFeld        = SortParam is "Titel" or "Datum" ? SortParam : "Nummer";
-        _sortAufsteigend = AscParam ?? true;
+        _sortFeld        = SortParam is "Titel" or "Nummer" or "Bewertung" ? SortParam : "Datum";
+        _sortAufsteigend = AscParam ?? (_sortFeld != "Datum");
         _seite           = Math.Max(1, SeiteParam ?? 1);
 
         // Filter aus URL
@@ -464,8 +465,8 @@ else
         if (!_initialized) return;
 
         var neuQ    = QParam ?? string.Empty;
-        var neuSort = SortParam is "Titel" or "Datum" ? SortParam : "Nummer";
-        var neuAsc  = AscParam ?? true;
+        var neuSort = SortParam is "Titel" or "Nummer" or "Bewertung" ? SortParam : "Datum";
+        var neuAsc  = AscParam ?? (neuSort != "Datum");
         var neuSeite = Math.Max(1, SeiteParam ?? 1);
 
         if (neuQ == _suchbegriff && neuSort == _sortFeld &&
@@ -502,8 +503,9 @@ else
     {
         var parts = new List<string>();
         if (!string.IsNullOrEmpty(_suchbegriff)) parts.Add($"q={Uri.EscapeDataString(_suchbegriff)}");
-        if (_sortFeld != "Nummer")               parts.Add($"sort={_sortFeld}");
-        if (!_sortAufsteigend)                   parts.Add("asc=false");
+        if (_sortFeld != "Datum")                parts.Add($"sort={_sortFeld}");
+        if (_sortAufsteigend && _sortFeld == "Datum")  parts.Add("asc=true");
+        if (!_sortAufsteigend && _sortFeld != "Datum") parts.Add("asc=false");
         if (_seite > 1)                          parts.Add($"seite={_seite}");
         if (_filterGenreIds.Count > 0)           parts.Add($"genres={string.Join(",", _filterGenreIds)}");
         if (_filterDiscTypes.Count > 0)          parts.Add($"disc={Uri.EscapeDataString(string.Join(",", _filterDiscTypes))}");
@@ -645,6 +647,7 @@ else
         _seite = Math.Clamp(seite, 1, _result?.GesamtSeiten ?? 1);
         await LadeFilme();
         UrlAktualisieren();
+        await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
     }
 
     // ── Filter (A2) ──
