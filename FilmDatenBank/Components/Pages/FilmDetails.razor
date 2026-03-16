@@ -358,8 +358,6 @@ else if (_film is not null)
         try
         {
             _tmdbInfo = await TmdbService.GetFilmInfoAsync(_film!.TmdbId!);
-            if (_tmdbInfo is not null)
-                ToastService.Erfolg("TMDB-Daten geladen");
         }
         catch (Exception ex)
         {

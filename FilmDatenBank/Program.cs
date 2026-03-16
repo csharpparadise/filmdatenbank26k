@@ -13,6 +13,8 @@ var dbPath = builder.Environment.IsDevelopment()
     ? Path.Combine(builder.Environment.ContentRootPath, "filmdatenbank.db")
     : "/data/filmdatenbank.db";
 
+Console.WriteLine("DB Path: " + dbPath);
+
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
