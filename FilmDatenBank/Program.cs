@@ -9,9 +9,32 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var dbPath = builder.Environment.IsDevelopment()
-    ? Path.Combine(builder.Environment.ContentRootPath, "filmdatenbank.db")
-    : "/data/filmdatenbank.db";
+string dbPath;
+if (builder.Environment.IsDevelopment())
+{
+    dbPath = Path.Combine(builder.Environment.ContentRootPath, "filmdatenbank.db");
+}
+else
+{
+    // Azure App Service: HOME=/home (persistent, writable)
+    // Fly.io: use /data (volume mount)
+    var home = Environment.GetEnvironmentVariable("HOME");
+    if (home != null && Directory.Exists(Path.Combine(home, "site")))
+    {
+        // Azure App Service detected (HOME/site exists)
+        var dataDir = Path.Combine(home, "data");
+        Directory.CreateDirectory(dataDir);
+        dbPath = Path.Combine(dataDir, "filmdatenbank.db");
+    }
+    else if (Directory.Exists("/data"))
+    {
+        dbPath = "/data/filmdatenbank.db";
+    }
+    else
+    {
+        dbPath = Path.Combine(builder.Environment.ContentRootPath, "filmdatenbank.db");
+    }
+}
 
 Console.WriteLine("DB Path: " + dbPath);
 
