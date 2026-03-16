@@ -204,7 +204,6 @@
 .fd-disc-dvd    { color: #4A5068; background: rgba(74,80,104,0.08);   border-color: rgba(74,80,104,0.2); }
 .fd-disc-bluray { color: #1A4BA8; background: rgba(26,75,168,0.07);   border-color: rgba(26,75,168,0.2); }
 .fd-disc-4k     { color: #6228A8; background: rgba(98,40,168,0.07);   border-color: rgba(98,40,168,0.2); }
-.fd-disc-vhs    { color: #7A4020; background: rgba(122,64,32,0.08);   border-color: rgba(122,64,32,0.2); }
 
 .fd-status-pill {
     font-size: 0.68rem;

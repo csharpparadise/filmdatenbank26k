@@ -137,7 +137,7 @@
                     var d = dt;
                     <button class="filter-chip @(_filterDiscTypes.Contains(d) ? "filter-chip--active" : "")"
                             @onclick="() => ToggleDiscFilter(d)">
-                        @d
+                        @DiscTypeLabel(d)
                     </button>
                 }
             </div>
@@ -250,7 +250,7 @@ else
                     <div class="film-top-row">
                         <div class="film-badges">
                             <span class="film-nummer">@film.AnzeigeNummer</span>
-                            <span class="disc-badge disc-@DiscTypeClass(film.DiscType)">@film.DiscType</span>
+                            <span class="disc-badge disc-@DiscTypeClass(film.DiscType)">@DiscTypeLabel(film.DiscType)</span>
                         </div>
                         <div class="film-status-badges">
                             @if (film.IstAusgeliehen) { <span class="status-pill status-ausgeliehen">Ausgeliehen</span> }
@@ -433,7 +433,7 @@ else
     private bool _filterGesperrt;
     private bool _filterBarOffen;
 
-    private static readonly string[] _alleDiscTypes = ["DVD", "Blu-ray (BD)", "4K UHD", "VHS"];
+    private static readonly string[] _alleDiscTypes = ["DVD", "BD", "4K"];
 
     protected override async Task OnInitializedAsync()
     {
@@ -733,9 +733,15 @@ else
 
     private static string DiscTypeClass(string discType) => discType switch
     {
-        "Blu-ray (BD)" => "bluray",
-        "4K UHD"       => "4k",
-        "VHS"          => "vhs",
-        _              => "dvd"
+        "BD"  => "bluray",
+        "4K" => "4k",
+        _    => "dvd"
+    };
+
+    private static string DiscTypeLabel(string discType) => discType switch
+    {
+        "BD" => "Blu-ray",
+        "4K" => "4K UHD",
+        _    => discType
     };
 }

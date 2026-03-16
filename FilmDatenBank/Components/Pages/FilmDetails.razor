@@ -79,7 +79,7 @@ else if (_film is not null)
             <header class="fd-hero">
                 <div class="fd-hero-badges">
                     <span class="fd-film-num">@_film.AnzeigeNummer</span>
-                    <span class="fd-disc-badge fd-disc-@DiscTypeClass(_film.DiscType)">@_film.DiscType</span>
+                    <span class="fd-disc-badge fd-disc-@DiscTypeClass(_film.DiscType)">@DiscTypeLabel(_film.DiscType)</span>
                     @if (_film.IstAusgeliehen) { <span class="fd-status-pill fd-status-ausgeliehen">Ausgeliehen</span> }
                     @if (_film.IstMarkiert)    { <span class="fd-status-pill fd-status-markiert">Markiert</span> }
                     @if (_film.IstGesperrt)    { <span class="fd-status-pill fd-status-gesperrt">Gesperrt</span> }
@@ -345,10 +345,16 @@ else if (_film is not null)
 
     private static string DiscTypeClass(string discType) => discType switch
     {
-        "Blu-ray (BD)" => "bluray",
-        "4K UHD"       => "4k",
-        "VHS"          => "vhs",
-        _              => "dvd"
+        "BD"  => "bluray",
+        "4K" => "4k",
+        _    => "dvd"
+    };
+
+    private static string DiscTypeLabel(string discType) => discType switch
+    {
+        "BD" => "Blu-ray",
+        "4K" => "4K UHD",
+        _    => discType
     };
 
     private async Task LadeTmdb()
