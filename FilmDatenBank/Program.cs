@@ -58,7 +58,12 @@ builder.Services.AddAuthentication("fdb_auth")
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -116,7 +121,7 @@ app.MapPost("/api/auth/login", async (
     var identity = new ClaimsIdentity(claims, "fdb_auth");
     await ctx.SignInAsync("fdb_auth", new ClaimsPrincipal(identity));
     return Results.Redirect(returnUrl is { Length: > 0 } r && r.StartsWith('/') ? r : "/");
-}).DisableAntiforgery();
+}).DisableAntiforgery().AllowAnonymous();
 
 app.MapPost("/api/auth/logout", async (HttpContext ctx) =>
 {
