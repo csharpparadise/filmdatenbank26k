@@ -46,17 +46,34 @@ namespace FilmDatenBank.Migrations
                     b.ToTable("tAblage");
                 });
 
+            modelBuilder.Entity("FilmDatenBank.Data.Models.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("FilmDatenBank.Data.Models.Film", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("fid");
-
-                    b.Property<string>("ASIN")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("fASIN");
 
                     b.Property<int?>("AblageId")
                         .HasColumnType("INTEGER")
@@ -111,6 +128,11 @@ namespace FilmDatenBank.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT")
                         .HasColumnName("fname");
+
+                    b.Property<string>("TmdbId")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("fASIN");
 
                     b.Property<string>("Trailer")
                         .HasMaxLength(200)

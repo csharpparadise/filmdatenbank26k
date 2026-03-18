@@ -1,0 +1,236 @@
+@page "/benutzer"
+@rendermode InteractiveServer
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject ToastService ToastService
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@using FilmDatenBank.Data
+
+<PageTitle>Benutzer verwalten</PageTitle>
+
+<h1 class="mb-4">Benutzer</h1>
+
+@if (!string.IsNullOrEmpty(_fehler))
+{
+    <div class="alert alert-danger alert-dismissible">
+        @_fehler
+        <button type="button" class="btn-close" @onclick="() => _fehler = string.Empty"></button>
+    </div>
+}
+
+@if (_users is null)
+{
+    <p>Wird geladen...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Benutzername</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _users)
+                {
+                    @if (_editUser?.Id == user.Id)
+                    {
+                        <tr class="table-active">
+                            <td>
+                                <span>@user.Username</span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <input class="form-control form-control-sm d-inline-block me-1"
+                                       style="width: 220px;"
+                                       type="password"
+                                       @bind="_editPasswort"
+                                       placeholder="Neues Passwort *" />
+                                <button class="btn btn-sm btn-primary me-1" @onclick="EditSpeichern">Speichern</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EditAbbrechen">Abbrechen</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td data-label="Benutzername">
+                                @user.Username
+                                @if (user.Username == _currentUsername)
+                                {
+                                    <span class="badge bg-secondary ms-2">Ich</span>
+                                }
+                            </td>
+                            <td data-label="" class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        @onclick="() => EditStarten(user)">Passwort ändern</button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        disabled="@(user.Username == _currentUsername)"
+                                        title="@(user.Username == _currentUsername ? "Eigenen Account nicht löschbar" : null)"
+                                        @onclick="() => LoeschenBestaetigen(user)">Löschen</button>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                <!-- Neuer Benutzer -->
+                <tr class="table-light">
+                    <td>
+                        <input class="form-control form-control-sm" maxlength="100"
+                               @bind="_neuerUsername" placeholder="Benutzername *" />
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <input class="form-control form-control-sm d-inline-block me-1"
+                               style="width: 220px;"
+                               type="password"
+                               @bind="_neuesPasswort"
+                               placeholder="Passwort *" />
+                        <button class="btn btn-sm btn-primary" @onclick="NeuHinzufuegen">
+                            + Hinzufügen
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small">@_users.Count Benutzer</p>
+}
+
+<DeleteConfirmation IsVisible="@(_loeschenUser is not null)"
+                    Title="Benutzer löschen?"
+                    Message="@(_loeschenUser is not null ? $"Benutzer \"{_loeschenUser.Username}\" wird unwiderruflich gelöscht." : "")"
+                    OnConfirm="LoeschenBestaetigt"
+                    OnCancel="() => _loeschenUser = null" />
+
+@code {
+    private List<AppUser>? _users;
+    private AppUser?       _editUser;
+    private string         _editPasswort = "";
+    private AppUser?       _loeschenUser;
+    private string         _fehler = string.Empty;
+
+    private string _neuerUsername = "";
+    private string _neuesPasswort = "";
+
+    private string _currentUsername = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _currentUsername = authState.User.FindFirstValue(ClaimTypes.Name) ?? "";
+        await Laden();
+    }
+
+    private async Task Laden()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _users = await db.Users.OrderBy(u => u.Username).ToListAsync();
+    }
+
+    // ── Neu ──────────────────────────────────────────────────────────────────
+
+    private async Task NeuHinzufuegen()
+    {
+        if (string.IsNullOrWhiteSpace(_neuerUsername) || string.IsNullOrWhiteSpace(_neuesPasswort))
+        {
+            _fehler = "Benutzername und Passwort sind Pflichtfelder.";
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (await db.Users.AnyAsync(u => u.Username == _neuerUsername))
+        {
+            _fehler = "Benutzername bereits vergeben.";
+            return;
+        }
+
+        var hasher = new PasswordHasher<AppUser>();
+        var user = new AppUser { Username = _neuerUsername };
+        user.PasswordHash = hasher.HashPassword(user, _neuesPasswort);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        _neuerUsername = "";
+        _neuesPasswort = "";
+        _fehler = string.Empty;
+        ToastService.Erfolg("Benutzer angelegt.");
+        await Laden();
+    }
+
+    // ── Bearbeiten ────────────────────────────────────────────────────────────
+
+    private void EditStarten(AppUser user)
+    {
+        _fehler = string.Empty;
+        _editUser = user;
+        _editPasswort = "";
+    }
+
+    private void EditAbbrechen()
+    {
+        _editUser = null;
+        _editPasswort = "";
+    }
+
+    private async Task EditSpeichern()
+    {
+        if (_editUser is null) return;
+
+        if (string.IsNullOrWhiteSpace(_editPasswort))
+        {
+            _fehler = "Passwort darf nicht leer sein.";
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var user = await db.Users.FindAsync(_editUser.Id);
+        if (user is null) { _editUser = null; return; }
+
+        var hasher = new PasswordHasher<AppUser>();
+        user.PasswordHash = hasher.HashPassword(user, _editPasswort);
+        await db.SaveChangesAsync();
+
+        _editUser = null;
+        _editPasswort = "";
+        _fehler = string.Empty;
+        ToastService.Erfolg("Passwort geändert.");
+        await Laden();
+    }
+
+    // ── Löschen ───────────────────────────────────────────────────────────────
+
+    private void LoeschenBestaetigen(AppUser user)
+    {
+        _fehler = string.Empty;
+        _loeschenUser = user;
+    }
+
+    private async Task LoeschenBestaetigt()
+    {
+        if (_loeschenUser is null) return;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (await db.Users.CountAsync() <= 1)
+        {
+            _fehler = "Der letzte Benutzer kann nicht gelöscht werden.";
+            _loeschenUser = null;
+            return;
+        }
+
+        var user = await db.Users.FindAsync(_loeschenUser.Id);
+        if (user is not null)
+        {
+            db.Users.Remove(user);
+            await db.SaveChangesAsync();
+        }
+
+        _loeschenUser = null;
+        ToastService.Erfolg("Benutzer gelöscht.");
+        await Laden();
+    }
+}

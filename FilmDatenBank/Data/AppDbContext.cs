@@ -8,9 +8,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Film> Filme => Set<Film>();
     public DbSet<Ablage> Ablagen => Set<Ablage>();
     public DbSet<Genre> Genres => Set<Genre>();
+    public DbSet<AppUser> Users => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AppUser>(e =>
+            e.HasIndex(u => u.Username).IsUnique());
+
         modelBuilder.Entity<Film>(entity =>
         {
             entity.HasOne(f => f.Ablage)
