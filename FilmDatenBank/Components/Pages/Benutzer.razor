@@ -68,6 +68,7 @@ else
                                 <button class="btn btn-sm btn-outline-secondary me-1"
                                         @onclick="() => EditStarten(user)">Passwort ändern</button>
                                 <button class="btn btn-sm btn-outline-danger"
+                                        aria-label="Benutzer @user.Username löschen"
                                         disabled="@(user.Username == _currentUsername)"
                                         title="@(user.Username == _currentUsername ? "Eigenen Account nicht löschbar" : null)"
                                         @onclick="() => LoeschenBestaetigen(user)">Löschen</button>
