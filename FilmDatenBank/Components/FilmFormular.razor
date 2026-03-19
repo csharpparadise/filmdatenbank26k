@@ -1,4 +1,5 @@
 @* Shared form fields for Add and Edit pages *@
+@using FilmDatenBank.Helpers
 
 <div class="row">
     <div class="col-md-8 mb-3">
@@ -105,7 +106,7 @@
     <div class="d-flex gap-3 align-items-start flex-wrap">
         @if (Film.Thumbnail is { Length: > 0 })
         {
-            <img src="data:@MimeType(Film.Thumbnail);base64,@Convert.ToBase64String(Film.Thumbnail)"
+            <img src="data:@FilmHelpers.MimeType(Film.Thumbnail);base64,@Convert.ToBase64String(Film.Thumbnail)"
                  style="height: 160px; object-fit: contain; border: 1px solid #dee2e6; border-radius: 4px;" />
         }
         <div>
@@ -152,9 +153,4 @@
         Film.Thumbnail = ms.ToArray();
     }
 
-    private static string MimeType(byte[] b) =>
-        b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 ? "image/png"  :
-        b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 ? "image/jpeg" :
-        b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 ? "image/gif"  :
-        "image/jpeg";
 }

@@ -1,5 +1,6 @@
 @page "/"
 @rendermode InteractiveServer
+@using FilmDatenBank.Helpers
 @inject IFilmService FilmService
 @inject NavigationManager Nav
 @inject ToastService ToastService
@@ -137,7 +138,7 @@
                     var d = dt;
                     <button class="filter-chip @(_filterDiscTypes.Contains(d) ? "filter-chip--active" : "")"
                             @onclick="() => ToggleDiscFilter(d)">
-                        @DiscTypeLabel(d)
+                        @FilmHelpers.DiscTypeLabel(d)
                     </button>
                 }
             </div>
@@ -227,7 +228,7 @@ else
                 <div class="film-poster">
                     @if (film.Thumbnail is { Length: > 0 })
                     {
-                        <img src="data:@MimeType(film.Thumbnail);base64,@Convert.ToBase64String(film.Thumbnail)"
+                        <img src="data:@FilmHelpers.MimeType(film.Thumbnail);base64,@Convert.ToBase64String(film.Thumbnail)"
                              alt="Cover von @film.Titel"
                              loading="lazy" />
                     }
@@ -250,7 +251,7 @@ else
                     <div class="film-top-row">
                         <div class="film-badges">
                             <span class="film-nummer">@film.AnzeigeNummer</span>
-                            <span class="disc-badge disc-@DiscTypeClass(film.DiscType)">@DiscTypeLabel(film.DiscType)</span>
+                            <span class="disc-badge disc-@FilmHelpers.DiscTypeClass(film.DiscType)">@FilmHelpers.DiscTypeLabel(film.DiscType)</span>
                         </div>
                         <div class="film-status-badges">
                             @if (film.IstAusgeliehen) { <span class="status-pill status-ausgeliehen">Ausgeliehen</span> }
@@ -725,23 +726,4 @@ else
         }
     }
 
-    private static string MimeType(byte[] b) =>
-        b.Length >= 4 && b[0] == 0x89 && b[1] == 0x50 ? "image/png"  :
-        b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 ? "image/jpeg" :
-        b.Length >= 3 && b[0] == 0x47 && b[1] == 0x49 ? "image/gif"  :
-        "image/jpeg";
-
-    private static string DiscTypeClass(string discType) => discType switch
-    {
-        "BD"  => "bluray",
-        "4K" => "4k",
-        _    => "dvd"
-    };
-
-    private static string DiscTypeLabel(string discType) => discType switch
-    {
-        "BD" => "Blu-ray",
-        "4K" => "4K UHD",
-        _    => discType
-    };
 }
