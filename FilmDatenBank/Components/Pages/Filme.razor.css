@@ -555,11 +555,6 @@
     font-size: 0.82rem;
 }
 
-.rating-max {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-}
-
 .rating-dots {
     font-size: 0.65rem;
     letter-spacing: 0.05em;
