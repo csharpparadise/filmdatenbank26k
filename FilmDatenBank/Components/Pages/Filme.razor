@@ -80,7 +80,9 @@
         <button class="filter-toggle-btn @(_filterBarOffen ? "filter-toggle-btn--active" : "")"
                 @onclick="() => _filterBarOffen = !_filterBarOffen"
                 @onkeydown="OnFilterKeydown"
-                aria-pressed="@_filterBarOffen"
+                aria-expanded="@_filterBarOffen"
+                aria-haspopup="true"
+                aria-controls="filter-panel"
                 aria-label="Filter öffnen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -96,7 +98,7 @@
         @if (_filterBarOffen)
         {
             <div class="filter-backdrop" @onclick="() => _filterBarOffen = false"></div>
-            <div class="filter-dropdown-panel">
+            <div class="filter-dropdown-panel" id="filter-panel" role="region" aria-label="Filteroptionen">
 
                 <!-- Sort section -->
                 <div class="filter-section-label">Sortierung</div>
@@ -745,6 +747,7 @@ else
         _filterAusgeliehen = false;
         _filterMarkiert = false;
         _filterGesperrt = false;
+        _filterBarOffen = false;
         _seite = 1;
         await LadeFilme();
         UrlAktualisieren();
