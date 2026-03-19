@@ -22,37 +22,45 @@
 
 @code {
     private readonly HashSet<Guid> _scheduled = [];
+    private readonly CancellationTokenSource _cts = new();
 
     protected override void OnInitialized()
     {
         ToastService.OnChange += OnToastChange;
     }
 
-    private async void OnToastChange()
+    private void OnToastChange()
     {
-        await InvokeAsync(StateHasChanged);
-
-        foreach (var toast in ToastService.Toasts)
+        InvokeAsync(async () =>
         {
-            if (_scheduled.Add(toast.Id))
+            await InvokeAsync(StateHasChanged);
+
+            foreach (var toast in ToastService.Toasts.ToList())
             {
-                var id = toast.Id;
-                _ = Task.Run(async () =>
+                if (_scheduled.Add(toast.Id))
                 {
-                    await Task.Delay(3500);
-                    await InvokeAsync(() =>
+                    var id = toast.Id;
+                    _ = Task.Run(async () =>
                     {
-                        ToastService.Entfernen(id);
-                        _scheduled.Remove(id);
-                        StateHasChanged();
+                        try { await Task.Delay(3500, _cts.Token); }
+                        catch (OperationCanceledException) { return; }
+
+                        await InvokeAsync(() =>
+                        {
+                            ToastService.Entfernen(id);
+                            _scheduled.Remove(id);
+                            StateHasChanged();
+                        });
                     });
-                });
+                }
             }
-        }
+        });
     }
 
     public void Dispose()
     {
         ToastService.OnChange -= OnToastChange;
+        _cts.Cancel();
+        _cts.Dispose();
     }
 }
