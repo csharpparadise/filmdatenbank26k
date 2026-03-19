@@ -18,7 +18,7 @@ Elevate the FilmDatenBank UI to a modern, cohesive warm-premium aesthetic while 
 Replace the dark sidebar with a unified warm-cream layout across the entire application.
 
 ### Changes
-- **Sidebar background:** `--bg` (cream #F2EDE3), matching the content area
+- **Sidebar background:** `--bg-subtle` (slightly darker than content area, see Section 4)
 - **Sidebar border:** `1px solid var(--border)` right border replaces the color contrast separation
 - **Brand/logo:** Switch from gold-on-dark to burgundy-on-cream; use Playfair Display wordmark "FilmDatenBank" at top of sidebar
 - **Nav links:**
