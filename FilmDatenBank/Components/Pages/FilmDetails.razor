@@ -243,7 +243,7 @@ else if (_film is not null)
             }
 
             <!-- Trailer -->
-            @if (!string.IsNullOrEmpty(_film.Trailer))
+            @if (!string.IsNullOrEmpty(_film.Trailer) && IsValidTrailerUrl(_film.Trailer))
             {
                 <div class="fd-divider"></div>
                 <section class="fd-section fd-trailer-section">
@@ -322,8 +322,9 @@ else if (_film is not null)
 
             if (path == "/watch")
             {
-                var match = System.Text.RegularExpressions.Regex.Match(uri.Query, @"[?&]v=([^&]+)");
-                return match.Success ? $"https://www.youtube.com/embed/{match.Groups[1].Value}" : null;
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var videoId = query["v"];
+                return videoId is not null ? $"https://www.youtube.com/embed/{videoId}" : null;
             }
 
             if (path.StartsWith("/embed/")) return url;
@@ -337,6 +338,10 @@ else if (_film is not null)
 
         return null;
     }
+
+    private static bool IsValidTrailerUrl(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
     private async Task LadeTmdb()
     {

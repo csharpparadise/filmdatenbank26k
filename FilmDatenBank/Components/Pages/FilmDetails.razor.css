@@ -19,17 +19,13 @@
     border: 2px solid var(--border-strong);
     border-top-color: var(--accent);
     border-radius: 50%;
-    animation: fd-spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
     flex-shrink: 0;
 }
 
 .fd-spinner-sm {
     width: 1rem;
     height: 1rem;
-}
-
-@keyframes fd-spin {
-    to { transform: rotate(360deg); }
 }
 
 .fd-error-state {
@@ -201,9 +197,9 @@
 }
 
 /* Light-theme disc badge colors */
-.fd-disc-dvd    { color: #4A5068; background: rgba(74,80,104,0.08);   border-color: rgba(74,80,104,0.2); }
-.fd-disc-bluray { color: #1A4BA8; background: rgba(26,75,168,0.07);   border-color: rgba(26,75,168,0.2); }
-.fd-disc-4k     { color: #6228A8; background: rgba(98,40,168,0.07);   border-color: rgba(98,40,168,0.2); }
+.fd-disc-dvd    { color: var(--disc-dvd-color);    background: var(--disc-dvd-bg);    border-color: var(--disc-dvd-border); }
+.fd-disc-bluray { color: var(--disc-bluray-color); background: var(--disc-bluray-bg); border-color: var(--disc-bluray-border); }
+.fd-disc-4k     { color: var(--disc-4k-color);     background: var(--disc-4k-bg);     border-color: var(--disc-4k-border); }
 
 .fd-status-pill {
     font-size: 0.68rem;
@@ -215,9 +211,9 @@
 }
 
 /* Light-theme status pill colors */
-.fd-status-ausgeliehen { color: #844808; background: rgba(132,72,8,0.08);   border-color: rgba(132,72,8,0.22); }
-.fd-status-markiert    { color: #1A4BA8; background: rgba(26,75,168,0.07);  border-color: rgba(26,75,168,0.2); }
-.fd-status-gesperrt    { color: #9A1818; background: rgba(154,24,24,0.07);  border-color: rgba(154,24,24,0.2); }
+.fd-status-ausgeliehen { color: var(--status-ausgeliehen-color); background: var(--status-ausgeliehen-bg); border-color: var(--status-ausgeliehen-border); }
+.fd-status-markiert    { color: var(--status-markiert-color);    background: var(--status-markiert-bg);    border-color: var(--status-markiert-border); }
+.fd-status-gesperrt    { color: var(--status-gesperrt-color);    background: var(--status-gesperrt-bg);    border-color: var(--status-gesperrt-border); }
 
 /* ── Film Title ── */
 .fd-title {
