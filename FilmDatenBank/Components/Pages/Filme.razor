@@ -1,6 +1,7 @@
 @page "/"
 @rendermode InteractiveServer
 @using FilmDatenBank.Helpers
+@implements IDisposable
 @inject IFilmService FilmService
 @inject NavigationManager Nav
 @inject ToastService ToastService
@@ -458,6 +459,7 @@ else
     private Film?  _loeschenFilm;
     private string _fehler = string.Empty;
     private bool   _initialized = false;
+    private CancellationTokenSource? _suchDebounce;
 
     private int _seite = 1;
     private const int ProSeite = 20;
@@ -505,8 +507,10 @@ else
 
         if (HatAktiveFilter()) _filterBarOffen = true;
 
-        _verfuegbareGenres = await FilmService.AlleGenreAsync();
-        await LadeFilme();
+        var genresTask = FilmService.AlleGenreAsync();
+        var filmsTask  = LadeFilme();
+        await Task.WhenAll(genresTask, filmsTask);
+        _verfuegbareGenres = genresTask.Result;
         _initialized = true;
     }
 
@@ -591,6 +595,14 @@ else
     {
         _suchbegriff = e.Value?.ToString() ?? string.Empty;
         _seite = 1;
+
+        _suchDebounce?.Cancel();
+        _suchDebounce = new CancellationTokenSource();
+        var token = _suchDebounce.Token;
+
+        try { await Task.Delay(300, token); }
+        catch (OperationCanceledException) { return; }
+
         await LadeFilme();
         UrlAktualisieren();
         await AktualisierteVorschlaege();
@@ -794,6 +806,12 @@ else
             _fehler = $"Fehler beim Löschen: {ex.Message}";
             _loeschenFilm = null;
         }
+    }
+
+    public void Dispose()
+    {
+        _suchDebounce?.Cancel();
+        _suchDebounce?.Dispose();
     }
 
 }
