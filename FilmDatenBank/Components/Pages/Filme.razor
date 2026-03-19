@@ -25,161 +25,226 @@
     </a>
 </div>
 
-<div class="search-wrapper">
-    <div class="search-bar">
-        <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input class="search-input"
-               type="search"
-               placeholder="Titel, Film-Nummer oder Genre suchen …"
-               value="@_suchbegriff"
-               @oninput="OnSuche"
-               @onfocus="AutocompleteOeffnen"
-               @onblur="AutocompleteSchliessen"
-               @onkeydown="OnSearchKeydown"
-               @onkeydown:preventDefault="_preventKeyDefault"
-               aria-label="Filmsuche"
-               aria-autocomplete="list"
-               aria-expanded="@(_autocompleteOffen && _vorschlaege.Count > 0)"
-               aria-activedescendant="@(_acSelectedIndex >= 0 ? $"ac-item-{_acSelectedIndex}" : null)" />
-        @if (!string.IsNullOrEmpty(_suchbegriff))
-        {
-            <button class="search-clear" @onclick="SucheLeeren" aria-label="Suche löschen">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
-        }
-    </div>
-
-    @if (_autocompleteOffen && _vorschlaege.Count > 0)
-    {
-        <div class="ac-dropdown" role="listbox">
-            @for (var i = 0; i < _vorschlaege.Count; i++)
+<div class="search-filter-row">
+    <div class="search-wrapper search-wrapper--grow">
+        <div class="search-bar">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="search-input"
+                   type="search"
+                   placeholder="Titel, Film-Nummer oder Genre suchen …"
+                   value="@_suchbegriff"
+                   @oninput="OnSuche"
+                   @onfocus="AutocompleteOeffnen"
+                   @onblur="AutocompleteSchliessen"
+                   @onkeydown="OnSearchKeydown"
+                   @onkeydown:preventDefault="_preventKeyDefault"
+                   aria-label="Filmsuche"
+                   aria-autocomplete="list"
+                   aria-expanded="@(_autocompleteOffen && _vorschlaege.Count > 0)"
+                   aria-activedescendant="@(_acSelectedIndex >= 0 ? $"ac-item-{_acSelectedIndex}" : null)" />
+            @if (!string.IsNullOrEmpty(_suchbegriff))
             {
-                var idx = i;
-                var vorschlag = _vorschlaege[idx];
-                <button class="ac-item ac-item--@(vorschlag.Typ == "Film" ? "film" : "genre") @(idx == _acSelectedIndex ? "ac-item--selected" : "")"
-                        id="ac-item-@idx"
-                        role="option"
-                        aria-selected="@(idx == _acSelectedIndex)"
-                        @onmousedown="() => VorschlagWaehlen(vorschlag.Text)">
-                    <span class="ac-text">@vorschlag.Text</span>
-                    <span class="ac-typ">@vorschlag.Typ</span>
+                <button class="search-clear" @onclick="SucheLeeren" aria-label="Suche löschen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
                 </button>
             }
         </div>
-    }
-</div>
 
-<div class="sort-bar">
-    <span class="sort-label">Sortierung:</span>
-    @foreach (var (feld, bezeichnung) in new[] { ("Nummer", "Nummer"), ("Titel", "Titel"), ("Datum", "Aufnahmedatum"), ("Bewertung", "Bewertung") })
-    {
-        var f = feld;
-        var aktiv = _sortFeld == f;
-        <button class="sort-btn @(aktiv ? "sort-btn--aktiv" : "")"
-                @onclick="() => SortierungWaehlen(f)"
-                aria-pressed="@aktiv">
-            @bezeichnung
-            @if (aktiv)
-            {
-                <svg class="sort-arrow @(_sortAufsteigend ? "" : "sort-arrow--desc")"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="18 15 12 9 6 15"/>
-                </svg>
-            }
-        </button>
-    }
-
-    <button class="sort-btn filter-toggle-btn @(_filterBarOffen ? "sort-btn--aktiv" : "")"
-            @onclick="() => _filterBarOffen = !_filterBarOffen"
-            aria-pressed="@_filterBarOffen">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:0.85rem;height:0.85rem">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-        </svg>
-        Filter
-        @if (HatAktiveFilter())
+        @if (_autocompleteOffen && _vorschlaege.Count > 0)
         {
-            <span class="filter-badge-count">!</span>
-        }
-    </button>
-</div>
-
-@if (_filterBarOffen)
-{
-    <div class="filter-bar">
-        @if (_verfuegbareGenres.Count > 0)
-        {
-            <div class="filter-group">
-                <span class="filter-group-label">Genre</span>
-                <div class="filter-chips">
-                    @foreach (var genre in _verfuegbareGenres)
-                    {
-                        var g = genre;
-                        <button class="filter-chip @(_filterGenreIds.Contains(g.Id) ? "filter-chip--active" : "")"
-                                @onclick="() => ToggleGenreFilter(g.Id)">
-                            @g.Name
-                        </button>
-                    }
-                </div>
-            </div>
-        }
-
-        <div class="filter-group">
-            <span class="filter-group-label">Disc-Typ</span>
-            <div class="filter-chips">
-                @foreach (var dt in _alleDiscTypes)
+            <div class="ac-dropdown" role="listbox">
+                @for (var i = 0; i < _vorschlaege.Count; i++)
                 {
-                    var d = dt;
-                    <button class="filter-chip @(_filterDiscTypes.Contains(d) ? "filter-chip--active" : "")"
-                            @onclick="() => ToggleDiscFilter(d)">
-                        @FilmHelpers.DiscTypeLabel(d)
+                    var idx = i;
+                    var vorschlag = _vorschlaege[idx];
+                    <button class="ac-item ac-item--@(vorschlag.Typ == "Film" ? "film" : "genre") @(idx == _acSelectedIndex ? "ac-item--selected" : "")"
+                            id="ac-item-@idx"
+                            role="option"
+                            aria-selected="@(idx == _acSelectedIndex)"
+                            @onmousedown="() => VorschlagWaehlen(vorschlag.Text)">
+                        <span class="ac-text">@vorschlag.Text</span>
+                        <span class="ac-typ">@vorschlag.Typ</span>
                     </button>
                 }
             </div>
-        </div>
+        }
+    </div>
 
-        <div class="filter-group">
-            <span class="filter-group-label">Bewertung</span>
-            <div class="filter-rating-row">
-                <input type="number" class="form-control form-control-sm filter-rating-input"
-                       min="0" max="10" placeholder="Min"
-                       value="@_filterBewertungMin"
-                       @onchange="async e => { _filterBewertungMin = ParseNullableInt(e); await AnwendenFilter(); }" />
-                <span class="filter-rating-sep">–</span>
-                <input type="number" class="form-control form-control-sm filter-rating-input"
-                       min="0" max="10" placeholder="Max"
-                       value="@_filterBewertungMax"
-                       @onchange="async e => { _filterBewertungMax = ParseNullableInt(e); await AnwendenFilter(); }" />
-            </div>
-        </div>
+    <div class="filter-btn-wrap">
+        <button class="filter-toggle-btn @(_filterBarOffen ? "filter-toggle-btn--active" : "")"
+                @onclick="() => _filterBarOffen = !_filterBarOffen"
+                @onkeydown="OnFilterKeydown"
+                aria-pressed="@_filterBarOffen"
+                aria-label="Filter öffnen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filter
+            @{ var count = ActiveFilterCount(); }
+            @if (count > 0)
+            {
+                <span class="filter-count-badge">@count</span>
+            }
+        </button>
 
-        <div class="filter-group">
-            <span class="filter-group-label">Status</span>
-            <div class="filter-chips">
-                <button class="filter-chip @(_filterAusgeliehen ? "filter-chip--active" : "")"
-                        @onclick="async () => { _filterAusgeliehen = !_filterAusgeliehen; await AnwendenFilter(); }">
-                    Ausgeliehen
-                </button>
-                <button class="filter-chip @(_filterMarkiert ? "filter-chip--active" : "")"
-                        @onclick="async () => { _filterMarkiert = !_filterMarkiert; await AnwendenFilter(); }">
-                    Markiert
-                </button>
-                <button class="filter-chip @(_filterGesperrt ? "filter-chip--active" : "")"
-                        @onclick="async () => { _filterGesperrt = !_filterGesperrt; await AnwendenFilter(); }">
-                    Gesperrt
-                </button>
-            </div>
-        </div>
-
-        @if (HatAktiveFilter())
+        @if (_filterBarOffen)
         {
-            <button class="filter-clear-btn" @onclick="FilterZuruecksetzen">Alle Filter zurücksetzen</button>
+            <div class="filter-backdrop" @onclick="() => _filterBarOffen = false"></div>
+            <div class="filter-dropdown-panel">
+
+                <!-- Sort section -->
+                <div class="filter-section-label">Sortierung</div>
+                <div class="filter-chips">
+                    @foreach (var (feld, bezeichnung) in new[] { ("Nummer", "Nummer"), ("Titel", "Titel"), ("Datum", "Aufnahmedatum"), ("Bewertung", "Bewertung") })
+                    {
+                        var f = feld;
+                        var aktiv = _sortFeld == f;
+                        <button class="filter-chip @(aktiv ? "filter-chip--active" : "")"
+                                @onclick="async () => { await SortierungWaehlen(f); }"
+                                aria-pressed="@aktiv">
+                            @bezeichnung
+                            @if (aktiv)
+                            {
+                                <svg class="sort-arrow @(_sortAufsteigend ? "" : "sort-arrow--desc")"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="18 15 12 9 6 15"/>
+                                </svg>
+                            }
+                        </button>
+                    }
+                </div>
+
+                @if (_verfuegbareGenres.Count > 0)
+                {
+                    <div class="filter-section-label">Genre</div>
+                    <div class="filter-chips">
+                        @foreach (var genre in _verfuegbareGenres)
+                        {
+                            var g = genre;
+                            <button class="filter-chip @(_filterGenreIds.Contains(g.Id) ? "filter-chip--active" : "")"
+                                    @onclick="() => ToggleGenreFilter(g.Id)">
+                                @g.Name
+                            </button>
+                        }
+                    </div>
+                }
+
+                <div class="filter-section-label">Disc-Typ</div>
+                <div class="filter-chips">
+                    @foreach (var dt in _alleDiscTypes)
+                    {
+                        var d = dt;
+                        <button class="filter-chip @(_filterDiscTypes.Contains(d) ? "filter-chip--active" : "")"
+                                @onclick="() => ToggleDiscFilter(d)">
+                            @FilmHelpers.DiscTypeLabel(d)
+                        </button>
+                    }
+                </div>
+
+                <div class="filter-section-label">Bewertung</div>
+                <div class="filter-rating-row">
+                    <input type="number" class="form-control form-control-sm filter-rating-input"
+                           min="0" max="10" placeholder="Min"
+                           aria-label="Mindestbewertung"
+                           value="@_filterBewertungMin"
+                           @onchange="async e => { _filterBewertungMin = ParseNullableInt(e); await AnwendenFilter(); }" />
+                    <span class="filter-rating-sep">–</span>
+                    <input type="number" class="form-control form-control-sm filter-rating-input"
+                           min="0" max="10" placeholder="Max"
+                           aria-label="Höchstbewertung"
+                           value="@_filterBewertungMax"
+                           @onchange="async e => { _filterBewertungMax = ParseNullableInt(e); await AnwendenFilter(); }" />
+                </div>
+
+                <div class="filter-section-label">Status</div>
+                <div class="filter-chips">
+                    <button class="filter-chip @(_filterAusgeliehen ? "filter-chip--active" : "")"
+                            @onclick="async () => { _filterAusgeliehen = !_filterAusgeliehen; await AnwendenFilter(); }">
+                        Ausgeliehen
+                    </button>
+                    <button class="filter-chip @(_filterMarkiert ? "filter-chip--active" : "")"
+                            @onclick="async () => { _filterMarkiert = !_filterMarkiert; await AnwendenFilter(); }">
+                        Markiert
+                    </button>
+                    <button class="filter-chip @(_filterGesperrt ? "filter-chip--active" : "")"
+                            @onclick="async () => { _filterGesperrt = !_filterGesperrt; await AnwendenFilter(); }">
+                        Gesperrt
+                    </button>
+                </div>
+
+                @if (HatAktiveFilter())
+                {
+                    <button class="filter-clear-btn" @onclick="FilterZuruecksetzen">Alle Filter zurücksetzen</button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@if (HatAktiveFilter())
+{
+    <div class="active-chips-row">
+        @foreach (var id in _filterGenreIds.ToList())
+        {
+            var capturedId = id;
+            var genre = _verfuegbareGenres.FirstOrDefault(g => g.Id == capturedId);
+            if (genre is not null)
+            {
+                <span class="active-chip">
+                    @genre.Name
+                    <button @onclick="async () => { _filterGenreIds.Remove(capturedId); await AnwendenFilter(); }" aria-label="@genre.Name Filter entfernen">×</button>
+                </span>
+            }
+        }
+        @foreach (var dt in _filterDiscTypes.ToList())
+        {
+            var capturedDt = dt;
+            <span class="active-chip">
+                @FilmHelpers.DiscTypeLabel(capturedDt)
+                <button @onclick="async () => { _filterDiscTypes.Remove(capturedDt); await AnwendenFilter(); }" aria-label="@FilmHelpers.DiscTypeLabel(capturedDt) Filter entfernen">×</button>
+            </span>
+        }
+        @if (_filterBewertungMin.HasValue)
+        {
+            <span class="active-chip">
+                Min @_filterBewertungMin
+                <button @onclick="async () => { _filterBewertungMin = null; await AnwendenFilter(); }" aria-label="Mindestbewertung Filter entfernen">×</button>
+            </span>
+        }
+        @if (_filterBewertungMax.HasValue)
+        {
+            <span class="active-chip">
+                Max @_filterBewertungMax
+                <button @onclick="async () => { _filterBewertungMax = null; await AnwendenFilter(); }" aria-label="Höchstbewertung Filter entfernen">×</button>
+            </span>
+        }
+        @if (_filterAusgeliehen)
+        {
+            <span class="active-chip">
+                Ausgeliehen
+                <button @onclick="async () => { _filterAusgeliehen = false; await AnwendenFilter(); }" aria-label="Ausgeliehen Filter entfernen">×</button>
+            </span>
+        }
+        @if (_filterMarkiert)
+        {
+            <span class="active-chip">
+                Markiert
+                <button @onclick="async () => { _filterMarkiert = false; await AnwendenFilter(); }" aria-label="Markiert Filter entfernen">×</button>
+            </span>
+        }
+        @if (_filterGesperrt)
+        {
+            <span class="active-chip">
+                Gesperrt
+                <button @onclick="async () => { _filterGesperrt = false; await AnwendenFilter(); }" aria-label="Gesperrt Filter entfernen">×</button>
+            </span>
         }
     </div>
 }
@@ -580,6 +645,11 @@ else
     }
 
     // ── Keyboard-Navigation (A3) ──
+    private void OnFilterKeydown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") _filterBarOffen = false;
+    }
+
     private void OnSearchKeydown(KeyboardEventArgs e)
     {
         _preventKeyDefault = false;
@@ -638,6 +708,14 @@ else
         _filterGenreIds.Count > 0 || _filterDiscTypes.Count > 0 ||
         _filterBewertungMin.HasValue || _filterBewertungMax.HasValue ||
         _filterAusgeliehen || _filterMarkiert || _filterGesperrt;
+
+    private int ActiveFilterCount() =>
+        _filterGenreIds.Count + _filterDiscTypes.Count +
+        (_filterBewertungMin.HasValue ? 1 : 0) +
+        (_filterBewertungMax.HasValue ? 1 : 0) +
+        (_filterAusgeliehen ? 1 : 0) +
+        (_filterMarkiert ? 1 : 0) +
+        (_filterGesperrt ? 1 : 0);
 
     private async Task ToggleGenreFilter(int id)
     {
