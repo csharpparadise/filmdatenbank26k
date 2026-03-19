@@ -33,27 +33,29 @@
     {
         InvokeAsync(async () =>
         {
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
 
             foreach (var toast in ToastService.Toasts.ToList())
             {
                 if (_scheduled.Add(toast.Id))
                 {
                     var id = toast.Id;
-                    _ = Task.Run(async () =>
-                    {
-                        try { await Task.Delay(3500, _cts.Token); }
-                        catch (OperationCanceledException) { return; }
-
-                        await InvokeAsync(() =>
-                        {
-                            ToastService.Entfernen(id);
-                            _scheduled.Remove(id);
-                            StateHasChanged();
-                        });
-                    });
+                    _ = ScheduleRemoval(id);
                 }
             }
+        });
+    }
+
+    private async Task ScheduleRemoval(Guid id)
+    {
+        try { await Task.Delay(3500, _cts.Token); }
+        catch (OperationCanceledException) { return; }
+
+        await InvokeAsync(() =>
+        {
+            ToastService.Entfernen(id);
+            _scheduled.Remove(id);
+            StateHasChanged();
         });
     }
 

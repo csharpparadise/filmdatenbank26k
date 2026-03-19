@@ -496,11 +496,6 @@
     opacity: 1;
 }
 
-.meta-rating strong {
-    font-weight: 600;
-    font-size: 0.82rem;
-}
-
 .rating-dots {
     font-size: 0.65rem;
     letter-spacing: 0.05em;
