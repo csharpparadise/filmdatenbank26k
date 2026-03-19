@@ -7,7 +7,7 @@
     --bg:              #F2EDE3;
     --bg-surface:      #F9F6F1;
     --bg-elevated:     #FFFFFF;
-    --sidebar-bg:      #EDE8DF;
+    --bg-subtle:       #EDE8DF;
     --accent:          #7B2C34;
     --accent-bright:   #8F3540;
     --accent-glow:     rgba(123, 44, 52, 0.08);
@@ -31,6 +31,35 @@
     --shadow-lg:       0 8px 32px rgba(0, 0, 0, 0.12), 0 16px 48px rgba(0, 0, 0, 0.07);
     --transition:      180ms ease;
     --transition-slow: 320ms ease;
+
+    /* ── Type Scale ── */
+    --text-xs:         0.75rem;
+    --text-sm:         0.875rem;
+    --text-md:         1rem;
+    --text-lg:         1.125rem;
+    --text-xl:         1.5rem;
+
+    /* ── Disc badge color tokens ── */
+    --disc-dvd-color:        #4A5068;
+    --disc-dvd-bg:           rgba(74, 80, 104, 0.08);
+    --disc-dvd-border:       rgba(74, 80, 104, 0.2);
+    --disc-bluray-color:     #1A4BA8;
+    --disc-bluray-bg:        rgba(26, 75, 168, 0.07);
+    --disc-bluray-border:    rgba(26, 75, 168, 0.2);
+    --disc-4k-color:         #6228A8;
+    --disc-4k-bg:            rgba(98, 40, 168, 0.07);
+    --disc-4k-border:        rgba(98, 40, 168, 0.2);
+
+    /* ── Status pill color tokens ── */
+    --status-ausgeliehen-color:  #844808;
+    --status-ausgeliehen-bg:     rgba(132, 72, 8, 0.08);
+    --status-ausgeliehen-border: rgba(132, 72, 8, 0.22);
+    --status-markiert-color:     #1A4BA8;
+    --status-markiert-bg:        rgba(26, 75, 168, 0.07);
+    --status-markiert-border:    rgba(26, 75, 168, 0.2);
+    --status-gesperrt-color:     #9A1818;
+    --status-gesperrt-bg:        rgba(154, 24, 24, 0.07);
+    --status-gesperrt-border:    rgba(154, 24, 24, 0.2);
 }
 
 /* ── Reset & Base ── */
@@ -503,4 +532,14 @@ textarea.form-control {
     .form-actions .btn {
         width: 100%;
     }
+}
+
+/* ── Shared Keyframes ── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
