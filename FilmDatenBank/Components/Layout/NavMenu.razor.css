@@ -53,7 +53,7 @@
     right: 1rem;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: var(--radius-sm);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2862,48,40,0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.4rem transparent;
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%237B2C34' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.4rem transparent;
     transition: all var(--transition);
     z-index: 401;
 }
@@ -121,10 +121,13 @@
 }
 
 .nav-item ::deep a.active {
-    background: var(--accent-glow);
-    border-color: var(--accent-border);
+    background: none;
+    border: 1px solid transparent;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
     color: var(--accent);
     font-weight: 500;
+    padding-left: calc(0.875rem - 2px); /* left border grows 1px→3px; subtract the 2px delta */
 }
 
 .nav-item ::deep a.active .nav-icon {
@@ -212,7 +215,7 @@
         width: 280px;
         max-width: 85vw;
         height: 100vh;
-        background: var(--sidebar-bg);
+        background: var(--bg-subtle);
         z-index: 400;
         padding-top: 4.5rem;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);

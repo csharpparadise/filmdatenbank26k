@@ -12,7 +12,7 @@ main {
 }
 
 .sidebar {
-    background: var(--sidebar-bg);
+    background: var(--bg-subtle);
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
 }
