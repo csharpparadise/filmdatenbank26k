@@ -510,7 +510,7 @@ else
         var genresTask = FilmService.AlleGenreAsync();
         var filmsTask  = LadeFilme();
         await Task.WhenAll(genresTask, filmsTask);
-        _verfuegbareGenres = genresTask.Result;
+        _verfuegbareGenres = await genresTask;
         _initialized = true;
     }
 
@@ -597,6 +597,7 @@ else
         _seite = 1;
 
         _suchDebounce?.Cancel();
+        _suchDebounce?.Dispose();
         _suchDebounce = new CancellationTokenSource();
         var token = _suchDebounce.Token;
 
