@@ -290,9 +290,6 @@
     animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
 
 /* ── Empty State ── */
 .empty-state {
@@ -334,34 +331,24 @@
 .film-card {
     display: flex;
     align-items: stretch;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
-    animation: fadeSlideIn 280ms ease both;
     position: relative;
     cursor: pointer;
+    animation: fadeSlideIn 280ms ease both;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius);
+    box-shadow: none;
+    transition: border-left-color var(--transition);
+    background: var(--bg-elevated);
 }
 
-@keyframes fadeSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Card hover elevation only for mouse devices */
+/* Card hover — left-border accent only for mouse devices */
 @media (hover: hover) and (pointer: fine) {
     .film-card:hover {
-        border-color: var(--accent-border);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
-        transform: translateY(-1px);
+        border-left-color: var(--accent);
     }
 }
 
@@ -372,7 +359,7 @@
 /* ── Film Poster ── */
 .film-poster {
     width: 64px;
-    min-height: 90px;
+    min-height: 100px;
     flex-shrink: 0;
     overflow: hidden;
     background: var(--bg-surface);
@@ -390,7 +377,7 @@
 .film-poster-placeholder {
     width: 100%;
     height: 100%;
-    min-height: 90px;
+    min-height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -453,59 +440,28 @@
 }
 
 /* Light-theme disc badge colors */
-.disc-dvd {
-    color: #4A5068;
-    background: rgba(74, 80, 104, 0.08);
-    border-color: rgba(74, 80, 104, 0.2);
-}
-
-.disc-bluray {
-    color: #1A4BA8;
-    background: rgba(26, 75, 168, 0.07);
-    border-color: rgba(26, 75, 168, 0.2);
-}
-
-.disc-4k {
-    color: #6228A8;
-    background: rgba(98, 40, 168, 0.07);
-    border-color: rgba(98, 40, 168, 0.2);
-}
+.disc-dvd    { color: var(--disc-dvd-color);    background: var(--disc-dvd-bg);    border-color: var(--disc-dvd-border); }
+.disc-bluray { color: var(--disc-bluray-color); background: var(--disc-bluray-bg); border-color: var(--disc-bluray-border); }
+.disc-4k     { color: var(--disc-4k-color);     background: var(--disc-4k-bg);     border-color: var(--disc-4k-border); }
 
 
-/* ── Status Pills ── */
+/* ── Status Labels ── */
 .film-status-badges {
     display: flex;
     gap: 0.35rem;
     flex-wrap: wrap;
 }
 
-.status-pill {
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    padding: 0.12em 0.55em;
-    border-radius: 999px;
-    border: 1px solid;
+/* Status labels (italic muted inline text) */
+.status-label {
+    font-size: var(--text-xs);
+    font-style: italic;
+    font-weight: 400;
+    font-variant: normal;
 }
-
-/* Light-theme status pill colors */
-.status-ausgeliehen {
-    color: #844808;
-    background: rgba(132, 72, 8, 0.08);
-    border-color: rgba(132, 72, 8, 0.22);
-}
-
-.status-markiert {
-    color: #1A4BA8;
-    background: rgba(26, 75, 168, 0.07);
-    border-color: rgba(26, 75, 168, 0.2);
-}
-
-.status-gesperrt {
-    color: #9A1818;
-    background: rgba(154, 24, 24, 0.07);
-    border-color: rgba(154, 24, 24, 0.2);
-}
+.status-label--ausgeliehen { color: var(--status-ausgeliehen-color); }
+.status-label--markiert    { color: var(--status-markiert-color); }
+.status-label--gesperrt    { color: var(--status-gesperrt-color); }
 
 /* ── Film Title ── */
 .film-titel {
@@ -533,11 +489,6 @@
     z-index: 0;
 }
 
-/* Elevate interactive elements above stretched link */
-.film-actions {
-    position: relative;
-    z-index: 1;
-}
 
 /* ── Genre Tags ── */
 .film-genres {
@@ -609,95 +560,12 @@
     font-size: 0.75rem;
 }
 
-/* ── Film Actions (mobile-first: always visible) ── */
-.film-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    opacity: 1;
+.rating-dots {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
 }
 
-/* Hover-reveal only for mouse/trackpad devices */
-@media (hover: hover) and (pointer: fine) {
-    .film-actions {
-        opacity: 0;
-        transition: opacity var(--transition);
-    }
-
-    .film-card:hover .film-actions {
-        opacity: 1;
-    }
-}
-
-.film-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    min-height: 36px;
-    min-width: 36px;
-    border: 1px solid var(--border-strong);
-    background: transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all var(--transition);
-    font-family: var(--font-body);
-}
-
-@media (pointer: coarse) {
-    .film-action-btn {
-        min-height: 40px;
-        min-width: 40px;
-    }
-}
-
-.film-action-details {
-    padding: 0.3rem 0.7rem;
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--text-dim);
-}
-
-@media (hover: hover) {
-    .film-action-details:hover {
-        background: var(--bg-surface);
-        border-color: var(--border-strong);
-        color: var(--text);
-    }
-}
-
-.film-action-edit {
-    padding: 0.3rem 0.55rem;
-    color: var(--text-muted);
-}
-
-@media (hover: hover) {
-    .film-action-edit:hover {
-        background: var(--accent-glow);
-        border-color: var(--accent-border);
-        color: var(--accent);
-    }
-}
-
-.film-action-edit svg,
-.film-action-delete svg {
-    width: 0.85rem;
-    height: 0.85rem;
-}
-
-.film-action-delete {
-    padding: 0.3rem 0.55rem;
-    color: var(--text-muted);
-}
-
-@media (hover: hover) {
-    .film-action-delete:hover {
-        background: var(--danger-glow);
-        border-color: rgba(184, 34, 34, 0.3);
-        color: var(--danger);
-    }
-}
 
 /* ── Paging ── */
 .paging {
@@ -910,9 +778,6 @@
         gap: 0.5rem;
     }
 
-    .film-actions {
-        gap: 0.4rem;
-    }
 
     .filme-header {
         flex-direction: column;
