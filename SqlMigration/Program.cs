@@ -22,6 +22,13 @@ await using var sqlConn    = new SqlConnection(SQL_CONN_STR);
 await using var sqliteConn = new SqliteConnection($"Data Source={SQLITE_PATH}");
 await sqliteConn.OpenAsync();
 
+// Disable FK enforcement for bulk import (INSERT OR IGNORE does not suppress FK violations)
+using (var pragma = sqliteConn.CreateCommand())
+{
+    pragma.CommandText = "PRAGMA foreign_keys = OFF;";
+    await pragma.ExecuteNonQueryAsync();
+}
+
 // ── tAblage ───────────────────────────────────────────────────────────────────
 Console.WriteLine("Migriere tAblage...");
 var ablagen = (await sqlConn.QueryAsync("SELECT ID, Ort, Bemerkung, Typ FROM dbo.tAblage")).AsList();
