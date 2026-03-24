@@ -4,6 +4,7 @@
 @inject IFilmService FilmService
 @inject ITmdbService TmdbService
 @inject ToastService ToastService
+@inject IJSRuntime JS
 
 <PageTitle>@(_film?.Titel ?? "Film-Details")</PageTitle>
 
@@ -290,6 +291,12 @@ else if (_film is not null)
     private string        _ladeFehler = string.Empty;
     private string        _tmdbFehler = string.Empty;
     private bool          _tmdbLaed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
+    }
 
     protected override async Task OnInitializedAsync()
     {
