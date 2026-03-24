@@ -41,6 +41,7 @@ Thumbs.db
 *.db-wal
 
 # Claude
+.claude/
 .claude/settings.local.json
 
 #MacOS
