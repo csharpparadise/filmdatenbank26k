@@ -45,11 +45,10 @@ public class FilmService(IDbContextFactory<AppDbContext> dbFactory) : IFilmServi
         var t = term.ToLower().Trim();
         await using var db = await dbFactory.CreateDbContextAsync();
 
-        var filmTitel = await db.Filme
+        var filme = await db.Filme
             .Where(f => f.Titel.ToLower().Contains(t))
             .OrderBy(f => f.Titel)
-            .Select(f => f.Titel)
-            .Distinct()
+            .Select(f => new { f.Id, f.Titel })
             .Take(6)
             .ToListAsync();
 
@@ -62,8 +61,8 @@ public class FilmService(IDbContextFactory<AppDbContext> dbFactory) : IFilmServi
             .ToListAsync();
 
         return [
-            .. filmTitel.Select(titel => new AutocompleteVorschlag(titel, "Film")),
-            .. genres.Select(name  => new AutocompleteVorschlag(name,  "Genre")),
+            .. filme.Select(f    => new AutocompleteVorschlag(f.Titel, "Film", f.Id)),
+            .. genres.Select(name => new AutocompleteVorschlag(name,   "Genre")),
         ];
     }
 

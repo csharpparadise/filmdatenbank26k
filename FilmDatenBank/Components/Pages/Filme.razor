@@ -68,7 +68,7 @@
                             id="ac-item-@idx"
                             role="option"
                             aria-selected="@(idx == _acSelectedIndex)"
-                            @onmousedown="() => VorschlagWaehlen(vorschlag.Text)">
+                            @onmousedown="() => VorschlagWaehlen(vorschlag)">
                         <span class="ac-text">@vorschlag.Text</span>
                         <span class="ac-typ">@vorschlag.Typ</span>
                     </button>
@@ -551,6 +551,7 @@ else
             IstMarkiert    = _filterMarkiert ? true : null,
             IstGesperrt    = _filterGesperrt ? true : null,
         });
+
     }
 
     private void UrlAktualisieren()
@@ -635,13 +636,20 @@ else
         _acSelectedIndex = -1;
     }
 
-    private async Task VorschlagWaehlen(string text)
+    private async Task VorschlagWaehlen(AutocompleteVorschlag vorschlag)
     {
-        _suchbegriff = text;
-        _seite = 1;
         _vorschlaege = [];
         _autocompleteOffen = false;
         _acSelectedIndex = -1;
+
+        if (vorschlag.Typ == "Film" && vorschlag.FilmId.HasValue)
+        {
+            Nav.NavigateTo($"/film/details/{vorschlag.FilmId.Value}");
+            return;
+        }
+
+        _suchbegriff = vorschlag.Text;
+        _seite = 1;
         await LadeFilme();
         UrlAktualisieren();
     }
@@ -686,7 +694,7 @@ else
                 if (_acSelectedIndex >= 0 && _acSelectedIndex < _vorschlaege.Count)
                 {
                     _preventKeyDefault = true;
-                    _ = VorschlagWaehlen(_vorschlaege[_acSelectedIndex].Text);
+                    _ = VorschlagWaehlen(_vorschlaege[_acSelectedIndex]);
                 }
                 break;
             case "Escape":

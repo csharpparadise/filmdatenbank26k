@@ -3,7 +3,7 @@ using FilmDatenBank.Data.Models;
 namespace FilmDatenBank.Services;
 
 /// <summary>Ein Autocomplete-Vorschlag mit Typ-Unterscheidung (Film / Genre).</summary>
-public record AutocompleteVorschlag(string Text, string Typ);
+public record AutocompleteVorschlag(string Text, string Typ, int? FilmId = null);
 
 public interface IFilmService
 {
