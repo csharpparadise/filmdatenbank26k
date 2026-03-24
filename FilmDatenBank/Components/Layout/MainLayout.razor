@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@implements IDisposable
 
 <div class="page">
     <div class="sidebar">
@@ -19,3 +22,17 @@
     <a href="" class="reload">Neu laden</a>
     <a class="dismiss">&#x2715;</a>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}
